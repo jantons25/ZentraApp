@@ -49,6 +49,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Usuario no encontrado" });
 
     const isMatch = await bcrypt.compare(password, userFound.password);
+    console.log("Comparando contraseñas:", { password, hashed: userFound.password, isMatch });
 
     if (!isMatch)
       return res.status(400).json({ message: "Contraseña incorrecta" });

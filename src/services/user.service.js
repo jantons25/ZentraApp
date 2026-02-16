@@ -6,7 +6,6 @@ export async function findUserByUsername(username) {
 }
 
 export async function createUser({ username, password, name, role }) {
-  console.log("Creating user with data:", { username, name, role, password });
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = new User({
     username,
