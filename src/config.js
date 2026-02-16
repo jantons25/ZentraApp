@@ -1,0 +1,1 @@
+export const TOKEN_SECRET = 'Zentra**2025Soporte';

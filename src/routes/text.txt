@@ -1,0 +1,13 @@
+src/
+├── app.js
+├── config.js
+├── db.js
+├── index.js
+├── controllers/
+├── services/
+├── routes/
+├── models/
+├── schemas/
+├── middlewares/
+└── libs/
+    └── jwt.js
