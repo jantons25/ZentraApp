@@ -4,7 +4,6 @@ import { productSchema } from "../validations/product.schema.js";
 import { useProduct } from "../context/ProductContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { set } from "mongoose";
 
 function ProductFormPage({ closeModal, refreshPagina, product }) {
   const {
