@@ -8,7 +8,6 @@ import {
   updateUserRequest,
 } from "../api/auth.js";
 import Cookies from "js-cookie";
-import { set } from "mongoose";
 
 export const AuthContext = createContext();
 
