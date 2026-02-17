@@ -79,6 +79,8 @@ function ProductFormPage({ closeModal, refreshPagina, product }) {
           <option value="Frugos">Frugos</option>
           <option value="Agua Mineral">Agua Mineral</option>
           <option value="Energizante">Energizante</option>
+          <option value="Aseo">Aseo</option>
+          <option value="Aseo">Bebidas</option>
         </select>
         {errors.categoria && (
           <p className="text-red-500 text-sm">{errors.categoria.message}</p>

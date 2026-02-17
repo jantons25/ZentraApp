@@ -1,4 +1,5 @@
 import { createContext, useState, useContext, useEffect } from "react";
+import { toast } from "react-hot-toast";
 import {
   registerRequest,
   loginRequest,
@@ -30,6 +31,7 @@ export const AuthProvider = ({ children }) => {
   const signup = async (user) => {
     try {
       const response = await registerRequest(user);
+      toast.success("Usuario creado exitosamente");
       //setUser(response.data);
       //setIsAuthenticated(true);
     } catch (error) {
@@ -74,9 +76,13 @@ export const AuthProvider = ({ children }) => {
       const res = await deleteUserRequest(id);
       if (res.status === 204) {
         setUsers(users.filter((user) => user._id !== id));
+        toast.success("Usuario eliminado correctamente");
       }
     } catch (error) {
       setErrors([error.response.data]);
+      toast.error(
+        `Error al eliminar el usuario: ${error.response.data.message}`
+      );
     }
   };
 
@@ -84,8 +90,12 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await updateUserRequest(id, user);
       setUsers(users.map((u) => (u._id === id ? res.data : u)));
+      toast.success("Cliente actualizado exitosamente");
     } catch (error) {
       setErrors([error.response.data.message]);
+      toast.error(
+        `Error al actualizar el usuario: ${error.response.data.message}`
+      );
     }
   };
 

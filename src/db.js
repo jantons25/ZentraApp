@@ -4,7 +4,7 @@ export const connectDB = async () => {
   try {
     // Lee la URI desde las variables de entorno
     // Si no existe, usa la conexión local como fallback
-    const mongoURI = process.env.MONGODB_URI || "mongodb://localhost/merndb";
+    const mongoURI = process.env.MONGODB_URI || "mongodb://localhost/ZentraBD";
     
     await mongoose.connect(mongoURI);
     

@@ -19,12 +19,12 @@ function CortesiasVariasFormPage({
   const { createCortesia, updateLoteCortesia } = useCortesia();
   const [cortesiasTemporales, setCortesiasTemporales] = useState([]);
   const [productosSinStockRecepcion, setProductosSinStockRecepcion] = useState(
-    [],
+    []
   );
 
   const totalItems = cortesiasTemporales.reduce(
     (acc, c) => acc + (Number(c.cantidad) || 0),
-    0,
+    0
   );
 
   // Después de las otras funciones, antes de handleGuardarCortesias
@@ -115,7 +115,7 @@ function CortesiasVariasFormPage({
         producto: products.find(
           (p) =>
             p._id ===
-            (typeof c.producto === "string" ? c.producto : c.producto._id),
+            (typeof c.producto === "string" ? c.producto : c.producto._id)
         ),
       }));
       setCortesiasTemporales(cortesiasConProductoObj);
@@ -162,6 +162,7 @@ function CortesiasVariasFormPage({
       >
         {/* PRODUCTO */}
         <div className="relative w-40 my-2">
+          <label className="font-bold block text-left">Producto</label>
           {errors.producto && (
             <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
               {errors.producto.message}
@@ -182,6 +183,7 @@ function CortesiasVariasFormPage({
 
         {/* CANTIDAD */}
         <div className="relative w-40 my-2">
+          <label className="font-bold block text-left">Cantidad</label>
           {errors.cantidad && (
             <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
               {errors.cantidad.message}
@@ -200,6 +202,7 @@ function CortesiasVariasFormPage({
 
         {/* RESPONSABLE */}
         <div className="relative w-40 my-2">
+          <label className="font-bold block text-left">Responsable</label>
           {errors.responsable && (
             <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
               {errors.responsable.message}
@@ -212,15 +215,16 @@ function CortesiasVariasFormPage({
             className="w-full bg-gray-200 px-4 py-2 rounded-md"
           >
             <option value="">Responsable</option>
-            <option value="001">N1</option>
-            <option value="002">N2</option>
-            <option value="003">N3</option>
-            <option value="004">N4</option>
+            <option value="Valentin">Valentín</option>
+            <option value="Cesar">Cesar</option>
+            <option value="David">David</option>
+            <option value="GeanPool">Gean Pool</option>
           </select>
         </div>
 
         {/* OBSERVACIÓN */}
         <div className="relative w-60 my-2">
+          <label className="font-bold block text-left">Observaciones</label>
           {errors.observacion && (
             <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
               {errors.observacion.message}
@@ -298,7 +302,7 @@ function CortesiasVariasFormPage({
                     <button
                       onClick={() => {
                         const nuevas = cortesiasTemporales.filter(
-                          (_, i) => i !== index,
+                          (_, i) => i !== index
                         );
                         setCortesiasTemporales(nuevas);
                       }}

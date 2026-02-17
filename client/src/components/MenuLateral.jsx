@@ -77,7 +77,7 @@ function MenuLateral({ user, pagina }) {
             <p>{user?.name?.charAt(0)}</p>
           </div>
           <div className="sidebar__hide">
-            <h3 className="sidebar__title">{user?.username}</h3>
+            <h3 className="sidebar__title">{user?.name}</h3>
             <p className="sidebar__info"> {user?.role}</p>
           </div>
         </li>

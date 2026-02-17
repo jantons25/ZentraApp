@@ -2,10 +2,12 @@ import { useState } from "react";
 import { useProduct } from "../context/ProductContext.jsx";
 import ModalBig from "./ModalBig.jsx";
 import ProductFormPage from "../pages/ProductFormPage.jsx";
+import ModalConfirmacion from "./ModalConfirmacion.jsx";
 
 function ProductsList({ compras, products, closeModal, refreshPagina }) {
   const { deleteProduct } = useProduct();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mostrarModal, setMostrarModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   const [filtroNombre, setFiltroNombre] = useState("");
@@ -13,13 +15,13 @@ function ProductsList({ compras, products, closeModal, refreshPagina }) {
 
   const calcularPrecioPromedio = (productId) => {
     const comprasDelProducto = (compras || []).filter(
-      (compra) => compra.producto._id === productId,
+      (compra) => compra.producto._id === productId
     );
     if (comprasDelProducto.length === 0) return "0.00";
 
     const sumaPrecios = comprasDelProducto.reduce(
       (total, compra) => total + compra.precio_compra,
-      0,
+      0
     );
     const promedio = sumaPrecios / comprasDelProducto.length;
     return promedio.toFixed(2);
@@ -30,7 +32,7 @@ function ProductsList({ compras, products, closeModal, refreshPagina }) {
   }
 
   const productosOrdenados = [...products].sort((a, b) =>
-    a.nombre.localeCompare(b.nombre),
+    a.nombre.localeCompare(b.nombre)
   );
 
   const productosFiltrados = productosOrdenados.filter((product) => {
@@ -42,6 +44,18 @@ function ProductsList({ compras, products, closeModal, refreshPagina }) {
       .includes(filtroCategoria.toLowerCase());
     return nombreMatch && categoriaMatch;
   });
+
+  const confirmarEliminarProduct = async () => {
+    try {
+      await deleteProduct(selectedProduct);
+      refreshPagina();
+    } catch (error) {
+      console.error("Error eliminando el producto:", error);
+    } finally {
+      setMostrarModal(false);
+      setSelectedProduct(null);
+    }
+  };
 
   return (
     <div className="bg-white p-4 w-full descripcion__container">
@@ -142,7 +156,10 @@ function ProductsList({ compras, products, closeModal, refreshPagina }) {
                     Editar
                   </button>
                   <button
-                    onClick={() => deleteProduct(product._id)}
+                    onClick={() => {
+                      setSelectedProduct(product._id);
+                      setMostrarModal(true);
+                    }}
                     className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-xs cursor-pointer"
                   >
                     Eliminar
@@ -167,6 +184,12 @@ function ProductsList({ compras, products, closeModal, refreshPagina }) {
             />
           ) : null
         }
+      />
+      <ModalConfirmacion
+        isOpen={mostrarModal}
+        onClose={() => setMostrarModal(false)}
+        onConfirm={confirmarEliminarProduct}
+        mensaje="¿Estás seguro de que deseas eliminar este producto?"
       />
     </div>
   );

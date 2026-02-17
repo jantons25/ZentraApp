@@ -19,12 +19,13 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
   const { createSalida, updateLoteSalidas } = useSalida();
   const [salidasTemporales, setSalidasTemporales] = useState([]);
   const [textBoton, setTextBoton] = useState("Registrar");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   //01.02.26 Productos sin stock
   const [productosSinStock, setProductosSinStock] = useState([]);
 
   const totalItems = salidasTemporales.reduce(
     (acc, salida) => acc + (salida.cantidad || 0),
-    0,
+    0
   );
 
   const salidasParaEnviar = salidasTemporales.map((salida) => ({
@@ -41,6 +42,9 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
 
   //01.02.26 Actualizada
   const handleGuardarSalidas = async () => {
+    if (isSubmitting) return; // bloquea doble click
+    setIsSubmitting(true);
+
     try {
       // Verificar stock disponible
       const productosSinStockTemp = verificarStockDisponible();
@@ -48,11 +52,7 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
       if (productosSinStockTemp.length > 0) {
         // Actualizar estado con productos sin stock
         setProductosSinStock(productosSinStockTemp);
-
-        // Mostrar mensaje de error
-        const nombresProductos = productosSinStockTemp
-          .map((s) => s.producto?.nombre || "Producto desconocido")
-          .join(", ");
+        setIsSubmitting(false); // reactiva porque no se guardará
         return; // Detener la ejecución
       }
 
@@ -80,6 +80,8 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
       closeModal();
     } catch (err) {
       console.error("Error al guardar lote de salidas:", err);
+    } finally {
+      setIsSubmitting(false); // reactiva siempre al final
     }
   };
 
@@ -96,7 +98,7 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
   const verificarStockDisponible = () => {
     const productosSinStockTemp = salidasTemporales.filter(
       (salida) =>
-        salida.cantidad > salida.producto.ingresos - salida.producto.salidas,
+        salida.cantidad > salida.producto.ingresos - salida.producto.salidas
     );
 
     return productosSinStockTemp;
@@ -110,7 +112,7 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
         producto: products.find(
           (p) =>
             p._id ===
-            (typeof s.producto === "string" ? s.producto : s.producto._id),
+            (typeof s.producto === "string" ? s.producto : s.producto._id)
         ),
       }));
       setSalidasTemporales(salidasConProductoObj);
@@ -141,6 +143,7 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
         className="flex flex-row flex-wrap gap-4 align-center justify-start"
       >
         <div className="relative w-40 my-2">
+          <label className="font-bold block text-left">Producto</label>
           {errors.producto && (
             <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
               {errors.producto.message}
@@ -160,6 +163,7 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
         </div>
 
         <div className="relative w-40 my-2">
+          <label className="font-bold block text-left">Cantidad</label>
           {errors.cantidad && (
             <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
               {errors.cantidad.message}
@@ -173,7 +177,7 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
           />
         </div>
 
-        <div className="w-30 flex justify-center align-center">
+        <div className="w-30 flex justify-center items-end">
           <button
             type="submit"
             className="bg-[#b9bc31] text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
@@ -203,7 +207,12 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
               {salidasTemporales.map((salida, index) => (
                 <tr
                   key={index}
-                  className={`border-b transition duration-150 ${salida.cantidad > salida.producto.ingresos - salida.producto.salidas ? "bg-red-100" : "bg-white"}`}
+                  className={`border-b transition duration-150 ${
+                    salida.cantidad >
+                    salida.producto.ingresos - salida.producto.salidas
+                      ? "bg-red-100"
+                      : "bg-white"
+                  }`}
                 >
                   <td className="px-6 py-4 text-center">
                     {salida.producto?.nombre || "Sin nombre"}
@@ -216,7 +225,7 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
                     <button
                       onClick={() => {
                         const nuevas = salidasTemporales.filter(
-                          (_, i) => i !== index,
+                          (_, i) => i !== index
                         );
                         setSalidasTemporales(nuevas);
                       }}
@@ -252,9 +261,15 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
             <button
               type="button"
               onClick={handleGuardarSalidas}
-              className="bg-[#b9bc31] text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
+              disabled={isSubmitting}
+              className={`px-4 py-2 rounded-md my-2 text-zinc-800
+        ${
+          isSubmitting
+            ? "bg-gray-400 cursor-not-allowed opacity-60"
+            : "bg-[#b9bc31] hover:bg-yellow-300 hover:text-black"
+        }`}
             >
-              {textBoton}
+              {isSubmitting ? "Registrando..." : textBoton}
             </button>
           </div>
         </div>

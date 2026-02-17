@@ -18,12 +18,12 @@ function ReposicionesVariasFormPage({
   const { createReposicion, updateLoteReposicion } = useReposicion();
   const [reposicionesTemporales, setReposicionesTemporales] = useState([]);
   const [productosSinStockRecepcion, setProductosSinStockRecepcion] = useState(
-    [],
+    []
   );
 
   const totalItems = reposicionesTemporales.reduce(
     (acc, reposicion) => acc + (Number(reposicion.cantidad) || 0),
-    0,
+    0
   );
 
   const calcularStockRecepcion = (producto) => {
@@ -43,7 +43,7 @@ function ReposicionesVariasFormPage({
       (reposicion) => {
         const stockRecepcion = calcularStockRecepcion(reposicion.producto);
         return reposicion.cantidad > stockRecepcion;
-      },
+      }
     );
 
     return productosSinStockTemp;
@@ -74,7 +74,8 @@ function ReposicionesVariasFormPage({
               : reposicion.producto._id,
           habitacion: reposicion.habitacion,
           responsable: reposicion.responsable,
-        }),
+          observacion: reposicion.observacion || "-",
+        })
       );
 
       if (reposicion && reposicion.reposiciones) {
@@ -115,7 +116,7 @@ function ReposicionesVariasFormPage({
         producto: products.find(
           (p) =>
             p._id ===
-            (typeof s.producto === "string" ? s.producto : s.producto._id),
+            (typeof s.producto === "string" ? s.producto : s.producto._id)
         ),
       }));
       setReposicionesTemporales(reposicionesConProductoObj);
@@ -136,7 +137,7 @@ function ReposicionesVariasFormPage({
           <ul className="mt-2 text-left">
             {productosSinStockRecepcion.map((reposicion, idx) => {
               const stockRecepcion = calcularStockRecepcion(
-                reposicion.producto,
+                reposicion.producto
               );
               const salidas = reposicion.producto?.salidas || 0;
               const cantidadVendida =
@@ -162,6 +163,7 @@ function ReposicionesVariasFormPage({
         className="flex flex-row flex-wrap gap-4 items-center justify-start w-full"
       >
         <div className="relative w-40 my-2">
+          <label className="font-bold block text-left">Producto</label>
           {errors.producto && (
             <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
               {errors.producto.message}
@@ -181,6 +183,7 @@ function ReposicionesVariasFormPage({
         </div>
 
         <div className="relative w-40 my-2">
+          <label className="font-bold block text-left">Cantidad</label>
           {errors.cantidad && (
             <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
               {errors.cantidad.message}
@@ -198,6 +201,7 @@ function ReposicionesVariasFormPage({
         </div>
 
         <div className="relative w-40 my-2">
+          <label className="font-bold block text-left">Habitación</label>
           {errors.habitacion && (
             <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
               {errors.habitacion.message}
@@ -210,25 +214,34 @@ function ReposicionesVariasFormPage({
             className="w-full bg-gray-200 px-4 py-2 rounded-md"
           >
             <option value="">Habitación</option>
+            <option value="101">101</option>
+            <option value="102">102</option>
+            <option value="103">103</option>
+            <option value="104">104</option>
+            <option value="105">105</option>
             <option value="201">201</option>
             <option value="202">202</option>
             <option value="203">203</option>
             <option value="204">204</option>
             <option value="205">205</option>
+            <option value="205">206</option>
             <option value="301">301</option>
             <option value="302">302</option>
             <option value="303">303</option>
             <option value="304">304</option>
             <option value="305">305</option>
+            <option value="306">306</option>
             <option value="401">401</option>
             <option value="402">402</option>
             <option value="403">403</option>
             <option value="404">404</option>
             <option value="405">405</option>
+            <option value="406">406</option>
           </select>
         </div>
 
         <div className="relative w-40 my-2">
+          <label className="font-bold block text-left">Responsable</label>
           {errors.responsable && (
             <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
               {errors.responsable.message}
@@ -241,11 +254,32 @@ function ReposicionesVariasFormPage({
             className="w-full bg-gray-200 px-4 py-2 rounded-md"
           >
             <option value="">Responsable</option>
-            <option value="001">N1</option>
-            <option value="002">N2</option>
-            <option value="003">N3</option>
-            <option value="004">N4</option>
+            <option value="Valentin">Valentín</option>
+            <option value="Cesar">Cesar</option>
+            <option value="David">David</option>
+            <option value="GeanPool">Gean Pool</option>
           </select>
+        </div>
+
+        {/* OBSERVACIÓN */}
+        <div className="relative w-60 my-2">
+          <label className="font-bold block text-left">Observaciones</label>
+          {errors.observacion && (
+            <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
+              {errors.observacion.message}
+            </p>
+          )}
+          <input
+            type="text"
+            placeholder="Observación (opcional)"
+            {...register("observacion", {
+              maxLength: {
+                value: 200,
+                message: "Máximo 200 caracteres",
+              },
+            })}
+            className="w-full bg-gray-200 px-4 py-2 rounded-md"
+          />
         </div>
 
         <div className="w-32 flex justify-center items-center">
@@ -270,6 +304,7 @@ function ReposicionesVariasFormPage({
                 <th className="px-6 py-3 text-center bg-green-200">Stock</th>
                 <th className="px-6 py-3 text-center">Habitación</th>
                 <th className="px-6 py-3 text-center">Responsable</th>
+                <th className="px-6 py-3 text-center">Observación</th>
                 <th className="px-6 py-3 text-center rounded-tr-[10px]">
                   Acción
                 </th>
@@ -307,11 +342,14 @@ function ReposicionesVariasFormPage({
                   <td className="px-6 py-4 text-center">
                     {reposicion.responsable}
                   </td>
+                  <td className="px-6 py-4 text-center">
+                    {reposicion.observacion || "-"}
+                  </td>
                   <td className="px-6 py-4 flex justify-center">
                     <button
                       onClick={() => {
                         const nuevas = reposicionesTemporales.filter(
-                          (_, i) => i !== index,
+                          (_, i) => i !== index
                         );
                         setReposicionesTemporales(nuevas);
                       }}

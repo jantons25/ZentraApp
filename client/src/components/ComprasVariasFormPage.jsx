@@ -25,13 +25,14 @@ function ComprasVariasFormPage({
   const { createCompra, updateLoteCompras } = useCompra();
   const [comprasTemporales, setComprasTemporales] = useState([]);
   const [textCompra, setTextCompra] = useState("Comprar");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const totalItems = comprasTemporales.reduce(
     (acc, compra) => acc + (compra.cantidad || 0),
-    0,
+    0
   );
   const totalImporte = comprasTemporales.reduce(
     (acc, compra) => acc + (compra.importe_compra || 0),
-    0,
+    0
   );
   const comprasParaEnviar = comprasTemporales.map((compra) => ({
     ...compra,
@@ -39,6 +40,9 @@ function ComprasVariasFormPage({
   }));
 
   const handleGuardarCompras = async () => {
+    if (isSubmitting) return; // bloquea doble click
+    setIsSubmitting(true);
+
     try {
       if (compra) {
         const comprasParaActualizar = comprasTemporales.map((compra) => ({
@@ -61,6 +65,8 @@ function ComprasVariasFormPage({
       closeModal();
     } catch (error) {
       console.error("Error al guardar compras múltiples:", error);
+    } finally {
+      setIsSubmitting(false); // reactiva siempre al final
     }
   };
 
@@ -83,7 +89,7 @@ function ComprasVariasFormPage({
         producto: products.find(
           (p) =>
             p._id ===
-            (typeof v.producto === "string" ? v.producto : v.producto._id),
+            (typeof v.producto === "string" ? v.producto : v.producto._id)
         ),
       }));
       setComprasTemporales(comprasConProductoObj);
@@ -97,6 +103,7 @@ function ComprasVariasFormPage({
         className="flex flex-row flex-wrap gap-4 align-center justify-start"
       >
         <div className="relative w-40 my-2">
+          <label className="font-bold block text-left">Producto</label>
           {errors.producto && (
             <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
               {errors.producto.message}
@@ -115,6 +122,7 @@ function ComprasVariasFormPage({
           </select>
         </div>
         <div className="relative w-40 my-2">
+          <label className="font-bold block text-left">Cantidad</label>
           {errors.cantidad && (
             <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
               {errors.cantidad.message}
@@ -128,6 +136,7 @@ function ComprasVariasFormPage({
           />
         </div>
         <div className="relative w-40 my-2">
+          <label className="font-bold block text-left">Precio</label>
           {errors.precio_compra && (
             <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
               {errors.precio_compra.message}
@@ -142,6 +151,7 @@ function ComprasVariasFormPage({
           />
         </div>
         <div className="relative w-40 my-2">
+          <label className="font-bold block text-left">F. Vencimiento</label>
           {errors.fecha_vencimiento && (
             <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
               {errors.fecha_vencimiento.message}
@@ -157,7 +167,7 @@ function ComprasVariasFormPage({
             })}
           />
         </div>
-        <div className="w-30 flex justify-center align-center">
+        <div className="w-30 flex justify-center items-end">
           <button
             type="submit"
             className="bg-[#b9bc31]  text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
@@ -206,14 +216,14 @@ function ComprasVariasFormPage({
                         day: "2-digit",
                         month: "2-digit",
                         year: "numeric",
-                      },
+                      }
                     )}
                   </td>
                   <td className="px-6 py-4 flex gap-2 justify-center">
                     <button
                       onClick={() => {
                         const nuevasCompras = comprasTemporales.filter(
-                          (_, i) => i !== index,
+                          (_, i) => i !== index
                         );
                         setComprasTemporales(nuevasCompras);
                       }}
@@ -253,9 +263,15 @@ function ComprasVariasFormPage({
             <button
               type="submit"
               onClick={handleGuardarCompras}
-              className="bg-[#b9bc31] text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
+              disabled={isSubmitting}
+              className={`px-4 py-2 rounded-md my-2 text-zinc-800
+        ${
+          isSubmitting
+            ? "bg-gray-400 cursor-not-allowed opacity-60"
+            : "bg-[#b9bc31] hover:bg-yellow-300 hover:text-black"
+        }`}
             >
-              {textCompra}
+              {isSubmitting ? "Registrando..." : textCompra}
             </button>
           </div>
         </div>
