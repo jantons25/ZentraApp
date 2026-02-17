@@ -45,7 +45,6 @@ app.use("/api", VentaRoutes);
 app.use("/api", SalidaRoutes);
 app.use("/api", ReposicionesRoutes);
 app.use("/api", CortesiasRoutes);
-app.use("/api", RelevoRoutes);
 app.use("/api", ReservaRoutes);
 app.use("/api", DetalleReservaRoutes);
 app.use("/api", Cliente);
