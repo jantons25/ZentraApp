@@ -19,6 +19,7 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
   const { createVenta, updateLoteVentas } = useVenta();
   const [ventasTemporales, setVentasTemporales] = useState([]);
   const [textBoton, setTextBoton] = useState("Vender");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   //01.02.26
   const [productosSinStockRecepcion, setProductosSinStockRecepcion] = useState(
     []
@@ -38,16 +39,16 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
   }));
 
   const handleGuardarVentas = async () => {
+    if (isSubmitting) return; // bloquea doble click
+    setIsSubmitting(true);
+
     try {
       // Verificar stock en recepción
       const productosSinStockRecepcionTemp = verificarStockEnRecepcion();
 
       if (productosSinStockRecepcionTemp.length > 0) {
         setProductosSinStockRecepcion(productosSinStockRecepcionTemp);
-
-        const nombresProductos = productosSinStockRecepcionTemp
-          .map((v) => v.producto?.nombre || "Producto desconocido")
-          .join(", ");
+        setIsSubmitting(false); // reactiva porque no se guardará
         return;
       }
 
@@ -73,6 +74,8 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
       closeModal();
     } catch (error) {
       console.error("Error al guardar ventas múltiples:", error);
+    } finally {
+      setIsSubmitting(false); // reactiva siempre al final
     }
   };
 
@@ -370,11 +373,17 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
           </div>
           <div className="w-30 m-auto mt-2 flex justify-center align-center">
             <button
-              type="submit"
+              type="button"
               onClick={handleGuardarVentas}
-              className="bg-[#b9bc31] text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
+              disabled={isSubmitting}
+              className={`px-4 py-2 rounded-md my-2 text-zinc-800
+        ${
+          isSubmitting
+            ? "bg-gray-400 cursor-not-allowed opacity-60"
+            : "bg-[#b9bc31] hover:bg-yellow-300 hover:text-black"
+        }`}
             >
-              {textBoton}
+              {isSubmitting ? "Registrando..." : textBoton}
             </button>
           </div>
         </div>

@@ -18,6 +18,7 @@ function CortesiasVariasFormPage({
 
   const { createCortesia, updateLoteCortesia } = useCortesia();
   const [cortesiasTemporales, setCortesiasTemporales] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [productosSinStockRecepcion, setProductosSinStockRecepcion] = useState(
     []
   );
@@ -52,16 +53,16 @@ function CortesiasVariasFormPage({
   };
 
   const handleGuardarCortesias = async () => {
+    if (isSubmitting) return; // bloquea doble click
+    setIsSubmitting(true);
+
     try {
       // Verificar stock en recepción ANTES de guardar
       const productosSinStockRecepcionTemp = verificarStockEnRecepcion();
 
       if (productosSinStockRecepcionTemp.length > 0) {
         setProductosSinStockRecepcion(productosSinStockRecepcionTemp);
-
-        const nombresProductos = productosSinStockRecepcionTemp
-          .map((c) => c.producto?.nombre || "Producto desconocido")
-          .join(", ");
+        setIsSubmitting(false); // reactiva porque no se guardará
         return; // Detener la ejecución
       }
 
@@ -92,6 +93,8 @@ function CortesiasVariasFormPage({
       closeModal();
     } catch (err) {
       console.error("Error al guardar lote de cortesías:", err);
+    } finally {
+      setIsSubmitting(false); // reactiva siempre al final
     }
   };
 
@@ -350,9 +353,15 @@ function CortesiasVariasFormPage({
             <button
               type="button"
               onClick={handleGuardarCortesias}
-              className="bg-[#b9bc31] text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
+              disabled={isSubmitting}
+              className={`px-4 py-2 rounded-md my-2 text-zinc-800
+        ${
+          isSubmitting
+            ? "bg-gray-400 cursor-not-allowed opacity-60"
+            : "bg-[#b9bc31] hover:bg-yellow-300 hover:text-black"
+        }`}
             >
-              Guardar Lote
+              {isSubmitting ? "Guardando..." : "Guardar Lote"}
             </button>
           </div>
         </div>
