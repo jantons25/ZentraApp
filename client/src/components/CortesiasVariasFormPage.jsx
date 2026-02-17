@@ -218,10 +218,11 @@ function CortesiasVariasFormPage({
             className="w-full bg-gray-200 px-4 py-2 rounded-md"
           >
             <option value="">Responsable</option>
-            <option value="Valentin">Valentín</option>
-            <option value="Cesar">Cesar</option>
             <option value="David">David</option>
-            <option value="GeanPool">Gean Pool</option>
+            <option value="Luz">Luz</option>
+            <option value="Miriam">Miriam</option>
+            <option value="Maryorie">Maryorie</option>
+            <option value="Yadira">Yadira</option>
           </select>
         </div>
 
