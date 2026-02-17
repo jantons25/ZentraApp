@@ -41,7 +41,7 @@ function ProductsContainer() {
   if (loading)
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-[#FCD535]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-[#b9bc31]"></div>
       </div>
     );
 
@@ -52,7 +52,9 @@ function ProductsContainer() {
       compras={compras}
       opt1={
         user?.role === "admin" ? (
-          <OptAgregarProducto onClick={() => setVistaActiva("AgregarProducto")} />
+          <OptAgregarProducto
+            onClick={() => setVistaActiva("AgregarProducto")}
+          />
         ) : null
       }
       opt2={

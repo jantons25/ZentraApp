@@ -2,7 +2,7 @@ import VentaIcon from "../assets/carro.png";
 import InventarioIcon from "../assets/lista.png";
 import SalirIcon from "../assets/cerrar-sesion.png";
 import AdminIcon from "../assets/gerente.png";
-import LogoIcon from "../assets/logo-nexus.jpg";
+import LogoIcon from "../assets/logo-zentra.jpg";
 import ReservaIcon from "../assets/reserva.png";
 import "../css/sidebarMenu.css";
 import { Link } from "react-router-dom";
@@ -43,12 +43,12 @@ function MenuLateral({ user, pagina }) {
             <p className="sidebar__text">Recepción</p>
           </div>
         </Link>
-        <Link to="/reservas" className={getItemClass("Reservas")}>
+        {/* <Link to="/reservas" className={getItemClass("Reservas")}>
           <img src={ReservaIcon} alt="" className="sidebar__icon" />
           <div className="sidebar__hide">
             <p className="sidebar__text">Reservas</p>
           </div>
-        </Link>
+        </Link> */}
         {user?.role === "admin" ||
           (user?.role === "superadmin" && (
             <Link
@@ -73,7 +73,9 @@ function MenuLateral({ user, pagina }) {
           </div>
         </button>
         <li className="sidebar__item sidebar__item__user">
-          <div className="sidebar__icon sidebar__icon__user"><p>{user?.name?.charAt(0)}</p></div>
+          <div className="sidebar__icon sidebar__icon__user">
+            <p>{user?.name?.charAt(0)}</p>
+          </div>
           <div className="sidebar__hide">
             <h3 className="sidebar__title">{user?.username}</h3>
             <p className="sidebar__info"> {user?.role}</p>

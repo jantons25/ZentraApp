@@ -56,7 +56,7 @@ function ComprasContainer() {
   if (loading)
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-[#FCD535]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-[#b9bc31]"></div>
       </div>
     );
 
@@ -66,14 +66,16 @@ function ComprasContainer() {
         user={user}
         compras={compras}
         products={products}
-        opt1={<OptAgregarCompra onClick={() => setVistaActiva("AgregarCompra")} />}
+        opt1={
+          <OptAgregarCompra onClick={() => setVistaActiva("AgregarCompra")} />
+        }
         pagina="Compras"
         vistaActiva={vistaActiva}
         setVistaActiva={setVistaActiva}
         refreshPagina={refreshPagina}
-        idLoteSeleccionado={idLoteSeleccionado} 
+        idLoteSeleccionado={idLoteSeleccionado}
         setIdLoteSeleccionado={setIdLoteSeleccionado}
-        handleEliminarLote={handleEliminarLote} 
+        handleEliminarLote={handleEliminarLote}
       />
     </div>
   );

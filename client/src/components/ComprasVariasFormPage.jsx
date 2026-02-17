@@ -24,14 +24,14 @@ function ComprasVariasFormPage({
 
   const { createCompra, updateLoteCompras } = useCompra();
   const [comprasTemporales, setComprasTemporales] = useState([]);
-  const [textCompra, setTextCompra] = useState("Comprar")
+  const [textCompra, setTextCompra] = useState("Comprar");
   const totalItems = comprasTemporales.reduce(
     (acc, compra) => acc + (compra.cantidad || 0),
-    0
+    0,
   );
   const totalImporte = comprasTemporales.reduce(
     (acc, compra) => acc + (compra.importe_compra || 0),
-    0
+    0,
   );
   const comprasParaEnviar = comprasTemporales.map((compra) => ({
     ...compra,
@@ -77,13 +77,13 @@ function ComprasVariasFormPage({
 
   useEffect(() => {
     if (compra?.compras?.length > 0) {
-      setTextCompra("Actualizar")
+      setTextCompra("Actualizar");
       const comprasConProductoObj = compra.compras.map((v) => ({
         ...v,
         producto: products.find(
           (p) =>
             p._id ===
-            (typeof v.producto === "string" ? v.producto : v.producto._id)
+            (typeof v.producto === "string" ? v.producto : v.producto._id),
         ),
       }));
       setComprasTemporales(comprasConProductoObj);
@@ -160,7 +160,7 @@ function ComprasVariasFormPage({
         <div className="w-30 flex justify-center align-center">
           <button
             type="submit"
-            className="bg-[#FCD535]  text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
+            className="bg-[#b9bc31]  text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
           >
             Agregar
           </button>
@@ -170,7 +170,7 @@ function ComprasVariasFormPage({
         <div className="max-h-[300px] overflow-y-auto">
           <table className="w-full table-auto text-sm text-left text-gray-700">
             <thead className="sticky top-0 bg-white z-10 shadow">
-              <tr className="bg-[#FCD535] text-xs uppercase text-gray-500">
+              <tr className="bg-[#b9bc31] text-xs uppercase text-gray-500">
                 <th className="px-6 py-3 text-center rounded-tl-[10px]">
                   Producto
                 </th>
@@ -206,14 +206,14 @@ function ComprasVariasFormPage({
                         day: "2-digit",
                         month: "2-digit",
                         year: "numeric",
-                      }
+                      },
                     )}
                   </td>
                   <td className="px-6 py-4 flex gap-2 justify-center">
                     <button
                       onClick={() => {
                         const nuevasCompras = comprasTemporales.filter(
-                          (_, i) => i !== index
+                          (_, i) => i !== index,
                         );
                         setComprasTemporales(nuevasCompras);
                       }}
@@ -253,7 +253,7 @@ function ComprasVariasFormPage({
             <button
               type="submit"
               onClick={handleGuardarCompras}
-              className="bg-[#FCD535] text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
+              className="bg-[#b9bc31] text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
             >
               {textCompra}
             </button>

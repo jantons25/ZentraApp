@@ -16,7 +16,7 @@ function RegisterPage({ user, closeModal, refreshPagina }) {
     errors: registerErrors,
     updateUser,
   } = useAuth();
-  
+
   const onSubmit = handleSubmit(async (values) => {
     if (user && user._id) {
       try {
@@ -111,7 +111,7 @@ function RegisterPage({ user, closeModal, refreshPagina }) {
         <div className="w-full flex justify-center">
           <button
             type="submit"
-            className="bg-[#FCD535] cursor-pointer text-zinc-800 px-4 py-2 mt-5 rounded-md hover:border-[#FCD535] hover:border-2 hover:bg-white hover:text-black my-2"
+            className="bg-[#b9bc31] cursor-pointer text-zinc-800 px-4 py-2 mt-5 rounded-md hover:border-[#b9bc31] hover:border-2 hover:bg-white hover:text-black my-2"
           >
             Registrarse
           </button>

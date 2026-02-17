@@ -10,17 +10,34 @@ import {
 import { Line } from "react-chartjs-2";
 import "../css/boxDataGraficoBarra.css";
 
-ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend);
+ChartJS.register(
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Tooltip,
+  Legend,
+);
 
 // Función para procesar los datos de productos vendidos por mes
 function procesarProductosPorMes(ventas) {
   const meses = [
-    "Ene", "Feb", "Mar", "Abr", "May", "Jun",
-    "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"
+    "Ene",
+    "Feb",
+    "Mar",
+    "Abr",
+    "May",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dic",
   ];
   const productosPorMes = new Array(12).fill(0); // Inicializar en 0 para cada mes
 
-  ventas.forEach(venta => {
+  ventas.forEach((venta) => {
     const fecha = new Date(venta.createdAt);
     const mes = fecha.getMonth(); // 0 (Enero) a 11 (Diciembre)
     productosPorMes[mes] += venta.cantidad || 0; // Sumar cantidad de productos
@@ -28,10 +45,10 @@ function procesarProductosPorMes(ventas) {
 
   const mesesConProductos = productosPorMes
     .map((cantidad, index) => ({ mes: meses[index], cantidad }))
-    .filter(entry => entry.cantidad > 0);
+    .filter((entry) => entry.cantidad > 0);
 
-  const labels = mesesConProductos.map(entry => entry.mes);
-  const datos = mesesConProductos.map(entry => entry.cantidad);
+  const labels = mesesConProductos.map((entry) => entry.mes);
+  const datos = mesesConProductos.map((entry) => entry.cantidad);
   const maxProductos = Math.max(...datos);
 
   return { labels, datos, maxProductos };
@@ -46,12 +63,12 @@ function BoxDataGraficoBarra({ ventas }) {
       {
         label: "Productos Vendidos",
         data: datos,
-        borderColor: "#FCD535",
-        backgroundColor: "#FCD535",
+        borderColor: "#b9bc31",
+        backgroundColor: "#b9bc31",
         fill: false,
         tension: 0.4,
         pointBackgroundColor: "#fff",
-        pointBorderColor: "#FCD535",
+        pointBorderColor: "#b9bc31",
         pointRadius: 5,
       },
     ],
@@ -67,7 +84,7 @@ function BoxDataGraficoBarra({ ventas }) {
         beginAtZero: true,
         suggestedMax: maxProductos,
         max: maxProductos,
-        ticks: { stepSize: Math.ceil(maxProductos / 4), },
+        ticks: { stepSize: Math.ceil(maxProductos / 4) },
       },
     },
   };

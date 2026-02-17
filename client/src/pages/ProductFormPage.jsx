@@ -104,7 +104,7 @@ function ProductFormPage({ closeModal, refreshPagina, product }) {
         <div className="w-full flex justify-center">
           <button
             type="submit"
-            className="bg-amber-300 text-zinc-800 px-4 py-2 mt-5 rounded-md hover:bg-yellow-300 hover:text-black my-2"
+            className="bg-[#b9bc31] text-zinc-800 px-4 py-2 mt-5 rounded-md hover:bg-yellow-300 hover:text-black my-2"
           >
             Guardar
           </button>

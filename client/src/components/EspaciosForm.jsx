@@ -3,7 +3,7 @@ import "../css/Espacios/espaciosForm.css";
 import { FaCheck } from "react-icons/fa";
 import { useEspacio } from "../context/EspacioContext.jsx";
 
-function EspacioWizard({closeModal, refreshPagina}) {
+function EspacioWizard({ closeModal, refreshPagina }) {
   const { createEspacio } = useEspacio();
   const [currentStep, setCurrentStep] = useState(1);
   const [espacioData, setEspacioData] = useState({
@@ -32,7 +32,7 @@ function EspacioWizard({closeModal, refreshPagina}) {
     nuevoEquipamiento: "",
 
     // Paso 5: Configuración adicional
-    color_tag: "#FCD535",
+    color_tag: "#b9bc31",
     estado: "disponible",
   });
 
@@ -225,7 +225,7 @@ function EspacioWizard({closeModal, refreshPagina}) {
         nuevoServicio: "",
         equipamiento: [],
         nuevoEquipamiento: "",
-        color_tag: "#FCD535",
+        color_tag: "#b9bc31",
         estado: "disponible",
       });
     } catch (error) {
@@ -440,7 +440,7 @@ function EspacioWizard({closeModal, refreshPagina}) {
                       <span key={index} className="tag">
                         {servicio}
                       </span>
-                    )
+                    ),
                   )}
                 </div>
               </div>
@@ -543,7 +543,6 @@ function EspacioWizard({closeModal, refreshPagina}) {
       case 5:
         return (
           <div className="step-content">
-
             <div className="resumen">
               <h3>Resumen del Espacio</h3>
               <div className="resumen-grid">

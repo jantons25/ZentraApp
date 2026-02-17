@@ -110,7 +110,7 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
 
   useEffect(() => {
     if (venta?.ventas?.length > 0) {
-      setTextBoton("Actualizar")
+      setTextBoton("Actualizar");
       const ventasConProductoObj = venta.ventas.map((v) => ({
         ...v,
         producto: products.find(
@@ -259,7 +259,7 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
         <div className="w-30 flex justify-center align-center">
           <button
             type="submit"
-            className="bg-[#FCD535]  text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
+            className="bg-[#b9bc31]  text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
           >
             Agregar
           </button>
@@ -269,7 +269,7 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
         <div className="max-h-[300px] overflow-y-auto">
           <table className="w-full table-auto text-sm text-left text-gray-700">
             <thead className="sticky top-0 bg-white z-10 shadow">
-              <tr className="bg-[#FCD535] text-xs uppercase text-gray-500">
+              <tr className="bg-[#b9bc31] text-xs uppercase text-gray-500">
                 <th className="px-6 py-3 text-center rounded-tl-[10px]">
                   Producto
                 </th>
@@ -368,7 +368,7 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
             <button
               type="submit"
               onClick={handleGuardarVentas}
-              className="bg-[#FCD535] text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
+              className="bg-[#b9bc31] text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
             >
               {textBoton}
             </button>
