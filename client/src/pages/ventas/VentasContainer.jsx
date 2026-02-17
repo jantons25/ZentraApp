@@ -97,7 +97,7 @@ function VentasPage() {
           ) : null
         }
         opt2={
-          canAccess("recepcionista", "superadmin") ? (
+          canAccess("recepcionista", "superadmin", "admin") ? (
             <OptListaVentas onClick={() => setVistaActiva("Ventas")} />
           ) : null
         }
@@ -112,14 +112,14 @@ function VentasPage() {
           ) : null
         }
         opt5={
-          canAccess("recepcionista", "superadmin") ? (
+          canAccess("recepcionista", "superadmin", "admin") ? (
             <OptListaReposiciones
               onClick={() => setVistaActiva("Reposiciones")}
             />
           ) : null
         }
         opt6={
-          canAccess("recepcionista", "superadmin") ? (
+          canAccess("recepcionista", "superadmin", "admin") ? (
             <OptListaCortesia
               onClick={() => setVistaActiva("Cortesias")}
             />
