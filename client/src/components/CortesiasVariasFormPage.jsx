@@ -268,7 +268,7 @@ function CortesiasVariasFormPage({
                 </th>
                 <th className="px-6 py-3 text-center">Cantidad</th>
                 <th className="px-6 py-3 text-center bg-green-200">
-                  Stock Central
+                  Stock Recepción
                 </th>
                 <th className="px-6 py-3 text-center">Responsable</th>
                 <th className="px-6 py-3 text-center">Observación</th>
@@ -296,7 +296,10 @@ function CortesiasVariasFormPage({
                   </td>
                   <td className="px-6 py-4 text-center">{c.cantidad}</td>
                   <td className="px-6 py-4 text-center text-green-600 font-bold">
-                    {c.producto.ingresos - c.producto.salidas}
+                    {c.producto.salidas -
+                      (c.producto.cantidad_vendida +
+                        c.producto.cantidad_repuesta +
+                        c.producto.cantidad_cortesia)}
                   </td>
                   <td className="px-6 py-4 text-center">{c.responsable}</td>
                   <td className="px-6 py-4 text-center">

@@ -23,6 +23,7 @@ export const crearReposiciones = async (reposicionesInput, userId) => {
 
   // 3. Procesar cada reposición individualmente
   for (const reposicion of reposiciones) {
+    console.log("Procesando reposición:", reposicion);
     const { cantidad, habitacion, responsable, observacion, producto } =
       reposicion;
 
@@ -30,7 +31,7 @@ export const crearReposiciones = async (reposicionesInput, userId) => {
       throw new Error("Datos inválidos para la reposición.");
     }
 
-    let cantidadRestante = cantidad;
+    let cantidadRestante = Number(cantidad); // ← Conversión a número
     const lotes_repuestos = [];
 
     // 4. Buscar salidas disponibles (FIFO)
@@ -41,23 +42,28 @@ export const crearReposiciones = async (reposicionesInput, userId) => {
 
     // 4.1 Verificar stock total ANTES de modificar nada
     const totalDisponible = salidasDisponibles.reduce(
-      (acc, salida) => acc + (salida.cantidad_disponible || 0),
+      (acc, salida) => acc + Number(salida.cantidad_disponible || 0), // ← Conversión
       0
     );
 
-    if (totalDisponible < cantidad) {
-      // No tocamos nada, no restamos stock, solo devolvemos error
+    if (totalDisponible < Number(cantidad)) {
+      // ← Conversión
       throw new Error(
         "Stock insuficiente (en salidas) para realizar la reposición."
       );
     }
 
-    // 5️. Consumir salidas una a una hasta cubrir la cantidad
+    // 5. Consumir salidas una a una hasta cubrir la cantidad
     for (const salida of salidasDisponibles) {
       if (cantidadRestante <= 0) break;
 
-      const usar = Math.min(salida.cantidad_disponible, cantidadRestante);
-      salida.cantidad_disponible -= usar;
+      const usar = Math.min(
+        Number(salida.cantidad_disponible || 0), // ← Conversión
+        cantidadRestante
+      );
+
+      salida.cantidad_disponible =
+        Number(salida.cantidad_disponible || 0) - usar; // ← Conversión
       cantidadRestante -= usar;
 
       const primerLote = salida.lotes_usados?.[0] || {};
@@ -65,7 +71,7 @@ export const crearReposiciones = async (reposicionesInput, userId) => {
       lotes_repuestos.push({
         salida_id: salida._id,
         cantidad: usar,
-        precio_compra: primerLote.precio_compra ?? 0,
+        precio_compra: Number(primerLote.precio_compra ?? 0), // ← Conversión
         lote: primerLote.lote ?? "000",
         fecha_vencimiento: primerLote.fecha_vencimiento ?? null,
       });
@@ -84,7 +90,7 @@ export const crearReposiciones = async (reposicionesInput, userId) => {
     const nuevaReposicion = new Reposicion({
       id_lote: nuevoIdLote,
       producto,
-      cantidad,
+      cantidad: Number(cantidad), // ← Conversión
       habitacion,
       responsable,
       observacion,
@@ -95,12 +101,12 @@ export const crearReposiciones = async (reposicionesInput, userId) => {
     const reposicionGuardada = await nuevaReposicion.save();
     reposicionesGuardadas.push(reposicionGuardada);
 
-    // 8. Actualizar campo de control en producto (opcional)
+    // 8. Actualizar campo de control en producto
     const productoDB = await Product.findById(producto);
     if (productoDB) {
       productoDB.cantidad_repuesta = Math.max(
         0,
-        (productoDB.cantidad_repuesta || 0) + cantidad
+        Number(productoDB.cantidad_repuesta || 0) + Number(cantidad) // ← Conversión
       );
       await productoDB.save();
     }
