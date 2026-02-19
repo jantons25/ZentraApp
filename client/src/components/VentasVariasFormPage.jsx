@@ -248,17 +248,30 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
               {...register("habitacion")}
               className="w-full bg-gray-200 px-4 py-2 rounded-md"
             >
-              <option value="">Oficina</option>
+              <option value="">Habitaciones</option>
+              <option value="101">101</option>
+              <option value="102">102</option>
+              <option value="103">103</option>
+              <option value="104">104</option>
+              <option value="105">105</option>
               <option value="201">201</option>
               <option value="202">202</option>
               <option value="203">203</option>
               <option value="204">204</option>
               <option value="205">205</option>
+              <option value="205">206</option>
               <option value="301">301</option>
               <option value="302">302</option>
               <option value="303">303</option>
               <option value="304">304</option>
               <option value="305">305</option>
+              <option value="306">306</option>
+              <option value="401">401</option>
+              <option value="402">402</option>
+              <option value="403">403</option>
+              <option value="404">404</option>
+              <option value="405">405</option>
+              <option value="406">406</option>
             </select>
           </div>
         )}
