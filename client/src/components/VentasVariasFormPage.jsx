@@ -239,6 +239,7 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
         </div>
         {pagoRegistrado === "No" && (
           <div className="relative w-40 my-2">
+            <label className="font-bold block text-left">Habitación</label>
             {errors.habitacion && (
               <p className="absolute -top-4 left-0 text-red-500 text-xs z-10">
                 {errors.habitacion.message}
@@ -276,7 +277,7 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
           </div>
         )}
 
-        <div className="w-30 flex justify-center align-center">
+        <div className="w-30 flex justify-center items-end">
           <button
             type="submit"
             className="bg-[#b9bc31]  text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
