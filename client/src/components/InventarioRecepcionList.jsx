@@ -49,6 +49,7 @@ function InventarioCentralList({ products, compras, ventas, user }) {
                 Reposiciones <br /> habitaciones
               </th>
               <th className="px-6 py-3 text-center bg-red-200">Cortesías</th>
+              <th className="px-6 py-3 text-center bg-red-200">Veladas</th>
               <th className="px-6 py-3 text-center bg-amber-100">
                 Stock Actual
               </th>
@@ -85,11 +86,15 @@ function InventarioCentralList({ products, compras, ventas, user }) {
                   {product.cantidad_cortesia}
                 </td>
 
+                <td className="px-6 py-4 text-center">
+                  {product.cantidad_velada}
+                </td>
+
                 <td className="px-6 py-4 text-center text-blue-600 font-bold">
                   {product.salidas -
                     (product.cantidad_vendida +
                       product.cantidad_repuesta +
-                      product.cantidad_cortesia)}
+                      product.cantidad_cortesia + product.cantidad_velada)}
                 </td>
 
                 <td className="px-6 py-4 text-right">

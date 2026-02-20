@@ -4,6 +4,7 @@ import SalidasList from "./SalidasList";
 import ProductsList from "./ProductsList";
 import ReposicionesList from "./ReposicionList";
 import CortesiaList from "./CortesiaList";
+import VeladasProductList from "./VeladasProductList";
 
 function VentasSection({
   vistaActiva,
@@ -13,6 +14,7 @@ function VentasSection({
   salidas,
   reposiciones,
   cortesias,
+  veladas,
   products,
   closeModal,
   refreshPagina,
@@ -74,6 +76,17 @@ function VentasSection({
     );
   }
 
+  if (vistaActiva === "Veladas") {
+    return (
+      <VeladasProductList
+        veladas={veladas}
+        products={products}
+        closeModal={closeModal}
+        refreshPagina={refreshPagina}
+      />
+    );
+  }
+
   if (vistaActiva === "Recepcion") {
     return (
       <VentasList
@@ -119,6 +132,7 @@ function VentasSection({
       products={products}
       reposiciones={reposiciones}
       cortesias={cortesias}
+      veladas={veladas}
     />
   );
 }

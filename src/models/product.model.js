@@ -84,6 +84,10 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    cantidad_velada: {
+      type: Number,
+      default: 0,
+    },
     ingresos: {
       type: Number,
       default: 0,

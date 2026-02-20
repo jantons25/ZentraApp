@@ -124,139 +124,139 @@ export const crearCortesias = async (cortesiasInput, userId) => {
   };
 };
 
-export const actualizarLoteCortesias = async (ids, nuevasCortesias, userId) => {
-  if (!Array.isArray(ids) || !Array.isArray(nuevasCortesias)) {
-    throw new Error("Datos inválidos: se esperaban arrays.");
-  }
+  export const actualizarLoteCortesias = async (ids, nuevasCortesias, userId) => {
+    if (!Array.isArray(ids) || !Array.isArray(nuevasCortesias)) {
+      throw new Error("Datos inválidos: se esperaban arrays.");
+    }
 
-  // 1) Traer cortesías antiguas
-  const cortesiasAntiguas = await Cortesia.find({ _id: { $in: ids } });
-  if (!cortesiasAntiguas.length) {
-    throw new Error("No se encontraron cortesías para actualizar.");
-  }
+    // 1) Traer cortesías antiguas
+    const cortesiasAntiguas = await Cortesia.find({ _id: { $in: ids } });
+    if (!cortesiasAntiguas.length) {
+      throw new Error("No se encontraron cortesías para actualizar.");
+    }
 
-  // Tomamos el id_lote del grupo antiguo para mantener el lote lógico
-  const id_lote = cortesiasAntiguas[0]?.id_lote || String(Date.now());
+    // Tomamos el id_lote del grupo antiguo para mantener el lote lógico
+    const id_lote = cortesiasAntiguas[0]?.id_lote || String(Date.now());
 
-  // 2) Revertir efectos de las cortesías antiguas
-  for (const cort of cortesiasAntiguas) {
-    // Reponer a Salidas lo consumido por esta cortesía
-    if (Array.isArray(cort.lotes_cortesias)) {
-      for (const lote of cort.lotes_cortesias) {
-        if (!lote.salida_id) continue;
+    // 2) Revertir efectos de las cortesías antiguas
+    for (const cort of cortesiasAntiguas) {
+      // Reponer a Salidas lo consumido por esta cortesía
+      if (Array.isArray(cort.lotes_cortesias)) {
+        for (const lote of cort.lotes_cortesias) {
+          if (!lote.salida_id) continue;
 
-        const salida = await Salida.findById(lote.salida_id);
-        if (!salida) continue;
+          const salida = await Salida.findById(lote.salida_id);
+          if (!salida) continue;
 
-        const nuevaDisp =
-          Number(salida.cantidad_disponible || 0) + Number(lote.cantidad || 0);
+          const nuevaDisp =
+            Number(salida.cantidad_disponible || 0) + Number(lote.cantidad || 0);
 
-        // No superar la cantidad original de la salida
-        salida.cantidad_disponible = Math.min(
-          Number(salida.cantidad),
-          nuevaDisp
+          // No superar la cantidad original de la salida
+          salida.cantidad_disponible = Math.min(
+            Number(salida.cantidad),
+            nuevaDisp
+          );
+
+          await salida.save();
+        }
+      }
+
+      // Ajustar el acumulado en el producto
+      const producto = await Product.findById(cort.producto);
+      if (producto) {
+        producto.cantidad_cortesia = Math.max(
+          0,
+          (producto.cantidad_cortesia || 0) - Number(cort.cantidad || 0)
         );
+        await producto.save();
+      }
 
+      // Eliminar la cortesía antigua
+      await Cortesia.findByIdAndDelete(cort._id);
+    }
+
+    // 3) Crear nuevas cortesías consumiendo FIFO desde Salidas
+    const cortesiasCreadas = [];
+
+    for (const cort of nuevasCortesias) {
+      const { cantidad, responsable, observacion, producto } = cort;
+
+      if (cantidad == null || isNaN(cantidad) || cantidad <= 0 || !producto) {
+        throw new Error("Datos inválidos para la nueva cortesía.");
+      }
+
+      let cantidadRestante = Number(cantidad);
+      const lotes_cortesias = [];
+
+      // FIFO: por fecha de vencimiento mínima y createdAt
+      const salidasDisponibles = await Salida.find({
+        producto,
+        cantidad_disponible: { $gt: 0 },
+      }).sort({ fecha_vencimiento_min: 1, createdAt: 1 });
+
+      for (const salida of salidasDisponibles) {
+        if (cantidadRestante <= 0) break;
+
+        const usar = Math.min(
+          Number(salida.cantidad_disponible || 0),
+          cantidadRestante
+        );
+        if (usar <= 0) continue;
+
+        salida.cantidad_disponible -= usar;
         await salida.save();
+
+        cantidadRestante -= usar;
+
+        const primerLote = salida.lotes_usados?.[0];
+        const precio_compra = primerLote?.precio_compra ?? 0;
+        const loteStr = primerLote?.lote ?? "000";
+        const fv = primerLote?.fecha_vencimiento ?? null;
+
+        lotes_cortesias.push({
+          salida_id: salida._id,
+          cantidad: usar,
+          precio_compra,
+          lote: loteStr,
+          fecha_vencimiento: fv,
+        });
+      }
+
+      if (cantidadRestante > 0) {
+        throw new Error(
+          "Stock insuficiente en salidas para registrar la nueva cortesía."
+        );
+      }
+
+      const nueva = new Cortesia({
+        id_lote,
+        producto,
+        cantidad: Number(cantidad),
+        responsable: responsable ?? "",
+        observacion: observacion ?? "",
+        user: userId,
+        lotes_cortesias,
+      });
+
+      const guardada = await nueva.save();
+      cortesiasCreadas.push(guardada);
+
+      // Actualizar acumulado del producto
+      const productoDB = await Product.findById(producto);
+      if (productoDB) {
+        productoDB.cantidad_cortesia = Math.max(
+          0,
+          (productoDB.cantidad_cortesia || 0) + Number(cantidad)
+        );
+        await productoDB.save();
       }
     }
 
-    // Ajustar el acumulado en el producto
-    const producto = await Product.findById(cort.producto);
-    if (producto) {
-      producto.cantidad_cortesia = Math.max(
-        0,
-        (producto.cantidad_cortesia || 0) - Number(cort.cantidad || 0)
-      );
-      await producto.save();
-    }
-
-    // Eliminar la cortesía antigua
-    await Cortesia.findByIdAndDelete(cort._id);
-  }
-
-  // 3) Crear nuevas cortesías consumiendo FIFO desde Salidas
-  const cortesiasCreadas = [];
-
-  for (const cort of nuevasCortesias) {
-    const { cantidad, responsable, observacion, producto } = cort;
-
-    if (cantidad == null || isNaN(cantidad) || cantidad <= 0 || !producto) {
-      throw new Error("Datos inválidos para la nueva cortesía.");
-    }
-
-    let cantidadRestante = Number(cantidad);
-    const lotes_cortesias = [];
-
-    // FIFO: por fecha de vencimiento mínima y createdAt
-    const salidasDisponibles = await Salida.find({
-      producto,
-      cantidad_disponible: { $gt: 0 },
-    }).sort({ fecha_vencimiento_min: 1, createdAt: 1 });
-
-    for (const salida of salidasDisponibles) {
-      if (cantidadRestante <= 0) break;
-
-      const usar = Math.min(
-        Number(salida.cantidad_disponible || 0),
-        cantidadRestante
-      );
-      if (usar <= 0) continue;
-
-      salida.cantidad_disponible -= usar;
-      await salida.save();
-
-      cantidadRestante -= usar;
-
-      const primerLote = salida.lotes_usados?.[0];
-      const precio_compra = primerLote?.precio_compra ?? 0;
-      const loteStr = primerLote?.lote ?? "000";
-      const fv = primerLote?.fecha_vencimiento ?? null;
-
-      lotes_cortesias.push({
-        salida_id: salida._id,
-        cantidad: usar,
-        precio_compra,
-        lote: loteStr,
-        fecha_vencimiento: fv,
-      });
-    }
-
-    if (cantidadRestante > 0) {
-      throw new Error(
-        "Stock insuficiente en salidas para registrar la nueva cortesía."
-      );
-    }
-
-    const nueva = new Cortesia({
-      id_lote,
-      producto,
-      cantidad: Number(cantidad),
-      responsable: responsable ?? "",
-      observacion: observacion ?? "",
-      user: userId,
-      lotes_cortesias,
-    });
-
-    const guardada = await nueva.save();
-    cortesiasCreadas.push(guardada);
-
-    // Actualizar acumulado del producto
-    const productoDB = await Product.findById(producto);
-    if (productoDB) {
-      productoDB.cantidad_cortesia = Math.max(
-        0,
-        (productoDB.cantidad_cortesia || 0) + Number(cantidad)
-      );
-      await productoDB.save();
-    }
-  }
-
-  return {
-    message: "Lote de cortesías actualizado correctamente",
-    cortesias: cortesiasCreadas,
+    return {
+      message: "Lote de cortesías actualizado correctamente",
+      cortesias: cortesiasCreadas,
+    };
   };
-};
 
 export const eliminarCortesiaPorId = async (cortesiaId) => {
   // 1) Buscar la cortesía

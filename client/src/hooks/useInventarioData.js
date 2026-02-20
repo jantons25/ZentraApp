@@ -10,6 +10,7 @@ import { useReserva } from "../context/ReservaContext";
 import { useCliente } from "../context/ClienteContext";
 import { useDetalleReserva } from "../context/DetalleReservaContext";
 import { useEspacio } from "../context/EspacioContext";
+import { useVelada } from "../context/VeladaContext";
 
 export function useInventarioData() {
   const { getVentas, ventas, getAllVentas, deleteVenta, updateLoteVentas, deleteLoteVentas, createVenta } = useVenta();
@@ -24,6 +25,7 @@ export function useInventarioData() {
   const { clientes, getClientes } = useCliente();
   const { detalleReservas, getDetalleReservas } = useDetalleReserva();
   const { espacios, getEspacios } = useEspacio();
+  const { getVeladas, veladas} = useVelada();
 
   return {
     // auth
@@ -74,5 +76,8 @@ export function useInventarioData() {
     // espacios
     espacios,
     getEspacios,
+    // veladas
+    veladas,
+    getVeladas,
   };
 }

@@ -16,6 +16,7 @@ import ReservaRoutes from "./routes/reserva.routes.js";
 import DetalleReservaRoutes from "./routes/detalleReserva.routes.js";
 import Cliente from "./routes/cliente.routes.js";
 import Espacio from "./routes/espacio.routes.js";
+import VeladaRoutes from "./routes/velada.routes.js";
 import cors from "cors";
 
 const app = express();
@@ -50,5 +51,6 @@ app.use("/api", ReservaRoutes);
 app.use("/api", DetalleReservaRoutes);
 app.use("/api", Cliente);
 app.use("/api", Espacio);
+app.use("/api", VeladaRoutes);
 
 export default app;

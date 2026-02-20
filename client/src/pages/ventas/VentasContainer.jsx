@@ -9,6 +9,7 @@ import OptListaCompras from "../../components/OptListaCompras.jsx";
 import OptListaData from "../../components/OptListaData.jsx";
 import OptListaProductos from "../../components/OptListaProductos.jsx";
 import OptListaReposiciones from "../../components/OptListaReposiciones.jsx";
+import OptListaVeladas from "../../components/OptListaProductVeladas.jsx";
 
 function VentasPage() {
   const {
@@ -30,6 +31,8 @@ function VentasPage() {
     getAllRelevos,
     compras,
     getAllCompras,
+    veladas,
+    getVeladas
   } = useInventarioData();
   const [vistaActiva, setVistaActiva] = useState("");
   const [botonAgregar, setBotonAgregar] = useState(false);
@@ -52,6 +55,7 @@ function VentasPage() {
         getAllCompras(),
         getAllSalidas(),
         getReposiciones(),
+        getVeladas()
       ]);
     } catch (error) {
       console.error("Error al cargar los datos:", error);
@@ -91,6 +95,7 @@ function VentasPage() {
         cortesias={cortesias}
         reposiciones={reposiciones}
         relevos={relevos}
+        veladas={veladas}
         opt1={
           canAccess("admin", "recepcionista", "superadmin") ? (
             <OptAgregarVenta onClick={() => setBotonAgregar(true)} />
@@ -120,19 +125,17 @@ function VentasPage() {
         }
         opt6={
           canAccess("recepcionista", "superadmin", "admin") ? (
-            <OptListaCortesia
-              onClick={() => setVistaActiva("Cortesias")}
-            />
+            <OptListaCortesia onClick={() => setVistaActiva("Cortesias")} />
           ) : null
         }
         opt7={
-          canAccess("admin", "superadmin") ? (
-            <OptListaProductos onClick={() => setVistaActiva("Productos")} />
+          canAccess("recepcionista", "superadmin", "admin") ? (
+            <OptListaVeladas onClick={() => setVistaActiva("Veladas")} />
           ) : null
         }
         opt8={
           canAccess("admin", "superadmin") ? (
-            <OptListaData onClick={() => setVistaActiva("Recepcion")} />
+            <OptListaProductos onClick={() => setVistaActiva("Productos")} />
           ) : null
         }
         pagina="Ventas"

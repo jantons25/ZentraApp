@@ -3,6 +3,7 @@ import ComprasVariasFormPage from "../ComprasVariasFormPage.jsx";
 import SalidasVariasFormPage from "../SalidasVariasFormPage";
 import ReposicionesVariasFormPage from "../ReposicionesVariasFormPage.jsx";
 import CortesiasVariasFormPage from "../CortesiasVariasFormPage.jsx";
+import VeladasVariasFormPage from "../VeladasVariasFormPage.jsx";
 import RegisterPage from "../../pages/RegisterPage";
 import ProductFormPage from "../../pages/ProductFormPage";
 import Trabajando from "../Trabajando";
@@ -47,6 +48,14 @@ export const modalRegistry = {
   },
   Cortesias: {
     component: CortesiasVariasFormPage,
+    props: (ctx) => ({
+      closeModal: ctx.closeModal,
+      refreshPagina: ctx.refreshPagina,
+      products: ctx.products,
+    }),
+  },
+  Veladas: {
+    component: VeladasVariasFormPage,
     props: (ctx) => ({
       closeModal: ctx.closeModal,
       refreshPagina: ctx.refreshPagina,

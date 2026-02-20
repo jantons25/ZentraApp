@@ -128,7 +128,8 @@ function ProductsList({ compras, products, closeModal, refreshPagina }) {
                   {product.ingresos -
                     (product.cantidad_vendida +
                       product.cantidad_repuesta +
-                      product.cantidad_cortesia)}
+                      product.cantidad_cortesia +
+                      product.cantidad_velada)}
                 </td>
                 <td className="px-6 py-4 text-right">
                   {product.ingresos - product.salidas}
@@ -137,7 +138,8 @@ function ProductsList({ compras, products, closeModal, refreshPagina }) {
                   {product.salidas -
                     (product.cantidad_vendida +
                       product.cantidad_repuesta +
-                      product.cantidad_cortesia)}
+                      product.cantidad_cortesia +
+                      product.cantidad_velada)}
                 </td>
                 <td className="px-6 py-4 text-right">
                   S/{calcularPrecioPromedio(product._id)}

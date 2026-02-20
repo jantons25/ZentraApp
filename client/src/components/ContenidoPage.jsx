@@ -33,6 +33,7 @@ function ContenidoPage({
   clientes,
   detalleReservas,
   espacios,
+  veladas
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const VISTAS = {
@@ -41,6 +42,7 @@ function ContenidoPage({
     Salidas: ["Salidas", "AgregarSalida"],
     Reposiciones: ["Reposiciones"],
     Cortesias: ["Cortesias"],
+    Veladas: ["Veladas"],
     Productos: ["Productos", "AgregarProducto", "AgregarPromo"],
     Data: ["Recepcion"],
     Administracion: ["Administracion", "AgregarUsuario"],
@@ -60,6 +62,7 @@ function ContenidoPage({
     Salidas: "Salidas",
     Reposiciones: "Reposiciones",
     Cortesias: "Cortesias",
+    Veladas: "Veladas",
     Productos: "Productos",
     Data: "Recepcion",
     Administracion: "Administracion",
@@ -91,6 +94,7 @@ function ContenidoPage({
       Salidas: ["Salidas"],
       Reposiciones: ["Reposiciones"],
       Cortesias: ["Cortesias"],
+      Veladas: ["Veladas"],
       Productos: ["Productos"],
       Data: ["Recepcion"],
       Administracion: ["Administracion"],
@@ -125,6 +129,7 @@ function ContenidoPage({
       compras,
       salidas,
       cortesias,
+      veladas,
       reposiciones,
       user,
       reservas,
@@ -196,6 +201,7 @@ function ContenidoPage({
           compras={compras}
           salidas={salidas}
           cortesias={cortesias}
+          veladas={veladas}
           reposiciones={reposiciones}
           products={products}
           closeModal={handleCloseModal}

@@ -38,6 +38,7 @@ function MaquetaHtml({
   espacios,
   clientes,
   detalleReservas,
+  veladas
 }) {
   return (
     <div className="w-full h-screen flex flex-row">
@@ -84,6 +85,7 @@ function MaquetaHtml({
           reservas={reservas}
           espacios={espacios}
           clientes={clientes}
+          veladas={veladas}
           detalleReservas={detalleReservas}
         />
       </div>

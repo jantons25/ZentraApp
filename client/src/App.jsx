@@ -25,6 +25,7 @@ import { ReservaProvider } from "./context/ReservaContext.jsx";
 import { ClienteProvider } from "./context/ClienteContext.jsx";
 import { DetalleReservaProvider } from "./context/DetalleReservaContext.jsx";
 import { EspacioProvider } from "./context/EspacioContext.jsx";
+import { VeladaProvider } from "./context/VeladaContext.jsx";
 import ReservasPage from "./pages/ReservasPage.jsx";
 import Dashboard from "./pages/Dashboard";
 
@@ -32,87 +33,92 @@ function App() {
   return (
     <>
       <AuthProvider>
-        <EspacioProvider>
-          <DetalleReservaProvider>
-            <ReservaProvider>
-              <ClienteProvider>
-                <ComprasProvider>
-                  <VentaProvider>
-                    <SalidaProvider>
-                      <ReposicionProvider>
-                        <CortesiaProvider>
-                          <RelevoProvider>
-                            <ProductProvider>
-                              <BrowserRouter>
-                                <Routes>
-                                  <Route
-                                    path="/login"
-                                    element={<LoginPage />}
-                                  />
-                                  <Route
-                                    path="/register"
-                                    element={<RegisterPage />}
-                                  />
-                                  <Route element={<ProtectedRoute />}>
+        <VeladaProvider>
+          <EspacioProvider>
+            <DetalleReservaProvider>
+              <ReservaProvider>
+                <ClienteProvider>
+                  <ComprasProvider>
+                    <VentaProvider>
+                      <SalidaProvider>
+                        <ReposicionProvider>
+                          <CortesiaProvider>
+                            <RelevoProvider>
+                              <ProductProvider>
+                                <BrowserRouter>
+                                  <Routes>
                                     <Route
-                                      path="/products"
-                                      element={<ProductsPage />}
-                                    />
-                                    <Route path="/" element={<Inventario />} />
-                                    <Route
-                                      path="/dashboard"
-                                      element={<Dashboard />}
+                                      path="/login"
+                                      element={<LoginPage />}
                                     />
                                     <Route
-                                      path="/inventario"
-                                      element={<Inventario />}
+                                      path="/register"
+                                      element={<RegisterPage />}
                                     />
-                                    <Route
-                                      path="/compras"
-                                      element={<ComprasPage />}
-                                    />
-                                    <Route
-                                      path="/ventas"
-                                      element={<VentasPage />}
-                                    />
-                                    <Route
-                                      path="/salidas"
-                                      element={<SalidasPage />}
-                                    />
-                                    <Route
-                                      path="/administracion"
-                                      element={<AdministracionPage />}
-                                    />
-                                    <Route
-                                      path="/reservas"
-                                      element={<ReservasPage />}
-                                    />
-                                    <Route
-                                      path="/add-product"
-                                      element={<ProductFormPage />}
-                                    />
-                                    <Route
-                                      path="/products/:id"
-                                      element={<ProductFormPage />}
-                                    />
-                                    <Route
-                                      path="/profile"
-                                      element={<ProfilePage />}
-                                    />
-                                  </Route>
-                                </Routes>
-                              </BrowserRouter>
-                            </ProductProvider>
-                          </RelevoProvider>
-                        </CortesiaProvider>
-                      </ReposicionProvider>
-                    </SalidaProvider>
-                  </VentaProvider>
-                </ComprasProvider>
-              </ClienteProvider>
-            </ReservaProvider>
-          </DetalleReservaProvider>
-        </EspacioProvider>
+                                    <Route element={<ProtectedRoute />}>
+                                      <Route
+                                        path="/products"
+                                        element={<ProductsPage />}
+                                      />
+                                      <Route
+                                        path="/"
+                                        element={<Inventario />}
+                                      />
+                                      <Route
+                                        path="/dashboard"
+                                        element={<Dashboard />}
+                                      />
+                                      <Route
+                                        path="/inventario"
+                                        element={<Inventario />}
+                                      />
+                                      <Route
+                                        path="/compras"
+                                        element={<ComprasPage />}
+                                      />
+                                      <Route
+                                        path="/ventas"
+                                        element={<VentasPage />}
+                                      />
+                                      <Route
+                                        path="/salidas"
+                                        element={<SalidasPage />}
+                                      />
+                                      <Route
+                                        path="/administracion"
+                                        element={<AdministracionPage />}
+                                      />
+                                      <Route
+                                        path="/reservas"
+                                        element={<ReservasPage />}
+                                      />
+                                      <Route
+                                        path="/add-product"
+                                        element={<ProductFormPage />}
+                                      />
+                                      <Route
+                                        path="/products/:id"
+                                        element={<ProductFormPage />}
+                                      />
+                                      <Route
+                                        path="/profile"
+                                        element={<ProfilePage />}
+                                      />
+                                    </Route>
+                                  </Routes>
+                                </BrowserRouter>
+                              </ProductProvider>
+                            </RelevoProvider>
+                          </CortesiaProvider>
+                        </ReposicionProvider>
+                      </SalidaProvider>
+                    </VentaProvider>
+                  </ComprasProvider>
+                </ClienteProvider>
+              </ReservaProvider>
+            </DetalleReservaProvider>
+          </EspacioProvider>
+        </VeladaProvider>
       </AuthProvider>
       <Toaster position="top-right" reverseOrder={false} />
     </>

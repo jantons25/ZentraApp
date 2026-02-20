@@ -1,49 +1,26 @@
 import { useState } from "react";
-import { useVenta } from "../context/VentaContext.jsx";
-import RecepcionData from "./RecepcionData.jsx";
-import ModalBigVarios from "./ModalBigVarios.jsx";
-import VentasVariasFormPage from "./VentasVariasFormPage.jsx";
+import { useVelada } from "../context/VeladaContext.jsx";
+import ModalBig from "./ModalBig.jsx";
 import ModalConfirmacion from "./ModalConfirmacion.jsx";
+import VeladasVariasFormPage from "./VeladasVariasFormPage.jsx";
 
-function VentasList({
-  ventas,
-  products,
-  refreshPagina,
-  vistaActiva,
-  compras,
-  reposiciones,
-  cortesias,
-  veladas
-}) {
-  const { deleteLoteVentas } = useVenta();
+function VeladasProductList({ veladas, products, closeModal, refreshPagina }) {
+  const { deleteLoteVeladas } = useVelada();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedVenta, setSelectedVenta] = useState(null);
-  const [filtroProducto, setFiltroProducto] = useState("");
-  const [filtroOficina, setFiltroOficina] = useState("");
-
-  // filtros de rango de fecha
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-
+  const [selectedVeladaLote, setSelectedVeladaLote] = useState(null);
   const [loteAEliminar, setLoteAEliminar] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
 
-  const confirmarEliminarLote = async () => {
-    try {
-      await deleteLoteVentas(loteAEliminar); // Este es el id_lote
-      refreshPagina();
-    } catch (error) {
-      console.error("Error eliminando lote:", error);
-    } finally {
-      setMostrarModal(false);
-      setLoteAEliminar(null);
-    }
-  };
+  const [filtroProducto, setFiltroProducto] = useState("");
 
-  // Helper para inputs de fecha
+  // ---------------------------
+  // FILTRO: RANGO DE FECHAS
+  // ---------------------------
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
   const toInputDate = (date) => date.toISOString().slice(0, 10);
 
-  // Atajos de periodo (mismo criterio que en InventarioCentral)
   const setTodayRange = () => {
     const today = new Date();
     const value = toInputDate(today);
@@ -53,10 +30,12 @@ function VentasList({
 
   const setThisWeekRange = () => {
     const today = new Date();
-    const day = today.getDay(); // 0=Dom, 1=Lun, ..., 6=Sab
-    const diffToMonday = day === 0 ? -6 : 1 - day; // Lunes inicio
+    const day = today.getDay();
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+
     const monday = new Date(today);
     monday.setDate(today.getDate() + diffToMonday);
+
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
 
@@ -80,12 +59,11 @@ function VentasList({
     setEndDate(toInputDate(end));
   };
 
-  // ¿la fecha de la venta está dentro del rango?
   const fechaEnRango = (createdAt) => {
-    if (!startDate && !endDate) return true; // sin filtro de rango
+    if (!startDate && !endDate) return true;
     if (!createdAt) return false;
 
-    const fechaStr = new Date(createdAt).toISOString().slice(0, 10); // "YYYY-MM-DD"
+    const fechaStr = new Date(createdAt).toISOString().slice(0, 10);
 
     if (startDate && fechaStr < startDate) return false;
     if (endDate && fechaStr > endDate) return false;
@@ -93,38 +71,46 @@ function VentasList({
     return true;
   };
 
-  function agruparYOrdenarVentasPorLote(ventas) {
+  const confirmarEliminarLote = async () => {
+    try {
+      await deleteLoteVeladas(loteAEliminar);
+      await refreshPagina();
+    } catch (error) {
+      console.error("Error eliminando lote de veladas:", error);
+    } finally {
+      setMostrarModal(false);
+      setLoteAEliminar(null);
+    }
+  };
+
+  function agruparYOrdenarVeladasPorLote(veladas) {
     const lotes = {};
 
-    // 1. Agrupar ventas por id_lote
-    ventas.forEach((venta) => {
-      const idLote = venta.id_lote ?? "sin-lote";
+    veladas.forEach((v) => {
+      const idLote = v.id_lote ?? "sin-lote";
       if (!lotes[idLote]) {
         lotes[idLote] = [];
       }
-      lotes[idLote].push(venta);
+      lotes[idLote].push(v);
     });
 
-    // 2. Convertir a array y ordenar por fecha del primer item (más reciente primero)
     const lotesArray = Object.entries(lotes)
-      .map(([id_lote, ventas]) => ({
+      .map(([id_lote, veladas]) => ({
         id_lote,
-        ventas,
-        createdAt: ventas[0]?.createdAt || null,
+        veladas,
+        createdAt: veladas[0]?.createdAt || null,
       }))
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     return lotesArray;
   }
 
-  const lotesOrdenados = agruparYOrdenarVentasPorLote(ventas);
+  const lotesOrdenados = agruparYOrdenarVeladasPorLote(veladas || []);
 
-  const lotesFiltrados = lotesOrdenados.filter((lote) => {
-    return lote.ventas.some((venta) => {
+  const lotesFiltrados = lotesOrdenados.filter((lote) =>
+    lote.veladas.some((v) => {
       const productoId =
-        typeof venta.producto === "string"
-          ? venta.producto
-          : venta.producto?._id;
+        typeof v.producto === "string" ? v.producto : v.producto?._id;
 
       const productoObj = products.find((p) => p._id === productoId);
       const nombreProducto = productoObj?.nombre || "";
@@ -133,42 +119,31 @@ function VentasList({
         .toLowerCase()
         .includes(filtroProducto.toLowerCase());
 
-      const oficinaMatch = (venta.habitacion || "")
-        .toLowerCase()
-        .includes(filtroOficina.toLowerCase());
+      const fechaMatch = fechaEnRango(v.createdAt);
 
-      const fechaMatch = fechaEnRango(venta.createdAt);
+      return productoMatch && fechaMatch;
+    })
+  );
 
-      return productoMatch && oficinaMatch && fechaMatch;
-    });
-  });
-
-  if (vistaActiva === "DataVentas") {
+  if (!veladas || veladas.length === 0) {
     return (
-      <>
-        <RecepcionData
-          ventas={ventas}
-          compras={compras}
-          productos={products}
-          reposiciones={reposiciones}
-          cortesias={cortesias}
-        />
-      </>
+      <h1 className="text-center text-gray-600">No hay veladas registradas.</h1>
     );
   }
 
   return (
-    <div className=" bg-white p-4 w-full descripcion__container">
-      <h1 className="text-2xl bold font-medium">Lista de Ventas</h1>
+    <div className="bg-white p-4 w-full descripcion__container">
+      <h1 className="text-2xl bold font-medium">Lista de Veladas</h1>
       <p className="p_final">
-        En esta sección puedes revisar y gestionar todas las ventas registradas
-        en el sistema. Usa los filtros por fecha, producto u oficina para
-        encontrar rápidamente lo que necesitas y, si requieres hacer cambios,
-        utiliza los botones de Editar o Eliminar en cada registro. Así podrás
-        mantener tu histórico de ventas siempre ordenado y actualizado.
+        En esta sección puedes registrar y controlar todas las veladas
+        entregadas. Usa los filtros por fecha o producto para encontrar
+        rápidamente un registro específico y, si necesitas corregir algún dato,
+        utiliza los botones de Editar o Eliminar en cada fila. De esta manera
+        llevas un control claro de qué productos se entregan como velada, en qué
+        cantidad, quién los autorizó y con qué finalidad.
       </p>
 
-      {/* ---- BLOQUE DE FILTRO DE PERIODO (ANTES DE LA TABLA) ---- */}
+      {/* --------- FILTRO DE RANGO DE FECHAS --------- */}
       <div className="mt-4 mb-4 p-3 bg-gray-50 border rounded-lg flex flex-wrap items-end gap-4">
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1">
@@ -241,13 +216,13 @@ function VentasList({
         </div>
       </div>
 
-      {/* ---- TABLA CON HEADER FIJO ---- */}
+      {/* --------- TABLA CON SCROLL + HEAD STICKY --------- */}
       <div className="mt-3 max-h-[60vh] overflow-y-auto border rounded-lg">
         <table className="w-full table-auto text-sm text-left text-gray-700">
           <thead className="bg-gray-100 text-xs uppercase text-gray-500 sticky top-0">
             <tr>
-              <th className="px-6 py-3 text-center bg-gray-100">Fecha</th>
-              <th className="px-6 py-3 text-center bg-gray-100">
+              <th className="px-6 py-2 text-center bg-gray-100">Fecha</th>
+              <th className="px-6 py-2 text-center bg-gray-100">
                 Producto
                 <input
                   type="text"
@@ -257,24 +232,10 @@ function VentasList({
                   className="mt-1 w-full text-center text-black border rounded px-2 py-1"
                 />
               </th>
-              <th className="px-6 py-3 text-center bg-gray-100">Cantidad</th>
-              <th className="px-6 py-3 text-center bg-gray-100">
-                Importe Venta
-              </th>
-              <th className="px-6 py-3 text-center bg-gray-100">
-                Pago Registrado
-              </th>
-              <th className="px-6 py-3 text-center bg-gray-100">
-                Oficina
-                <input
-                  type="text"
-                  placeholder="Buscar oficina"
-                  value={filtroOficina}
-                  onChange={(e) => setFiltroOficina(e.target.value)}
-                  className="mt-1 w-full text-center text-black border rounded px-2 py-1"
-                />
-              </th>
-              <th className="px-6 py-3 text-center bg-gray-100">Acciones</th>
+              <th className="px-6 py-2 text-center bg-gray-100">Cantidad</th>
+              <th className="px-6 py-2 text-center bg-gray-100">Responsable</th>
+              <th className="px-6 py-2 text-center bg-gray-100">Observación</th>
+              <th className="px-6 py-2 text-center bg-gray-100">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -295,87 +256,62 @@ function VentasList({
                     hour12: false,
                   })}
                 </td>
+
+                {/* Producto(s) del lote */}
                 <td className="px-6 py-4 font-medium">
-                  {lote.ventas.slice(0, 3).map((venta, index) => {
-                    const productId =
-                      typeof venta.producto === "string"
-                        ? venta.producto
-                        : venta.producto?._id;
-                    const producto = products.find((p) => p._id === productId);
+                  {lote.veladas.slice(0, 3).map((v, index) => {
+                    const productoId =
+                      typeof v.producto === "string"
+                        ? v.producto
+                        : v.producto?._id;
+                    const producto = products.find((p) => p._id === productoId);
                     return (
                       <div key={index}>{producto?.nombre || "Desconocido"}</div>
                     );
                   })}
-                  {lote.ventas.length > 3 && (
+                  {lote.veladas.length > 3 && (
                     <div className="text-gray-400 text-sm italic">otros...</div>
                   )}
                 </td>
-                <td className="px-6 py-4 text-center">
-                  {lote.ventas.slice(0, 3).map((venta, index) => (
-                    <div key={index}>{venta.cantidad}</div>
-                  ))}
-                  {lote.ventas.length > 3 && (
-                    <div className="text-gray-400 text-sm italic">otros...</div>
-                  )}
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <div className="mt-1">
-                    S/
-                    {lote.ventas
-                      .reduce(
-                        (acc, venta) =>
-                          acc + parseFloat(venta.importe_venta || 0),
-                        0,
-                      )
-                      .toFixed(2)}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-center">
-                  {(() => {
-                    const valoresUnicos = [
-                      ...new Set(
-                        lote.ventas.map((v) =>
-                          v.pago_registrado
-                            ? v.pago_registrado.toLowerCase()
-                            : "",
-                        ),
-                      ),
-                    ].filter(Boolean);
 
-                    if (valoresUnicos.length === 1) {
-                      return (
-                        <div className="capitalize">{valoresUnicos[0]}</div>
-                      );
-                    }
-
-                    return (
-                      <>
-                        {valoresUnicos.slice(0, 3).map((valor, i) => (
-                          <div key={i} className="capitalize">
-                            {valor}
-                          </div>
-                        ))}
-                        {valoresUnicos.length > 3 && (
-                          <div className="text-gray-400 text-sm italic">
-                            otros...
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
-                </td>
+                {/* Cantidad(es) del lote */}
                 <td className="px-6 py-4 text-center">
-                  {lote.ventas.slice(0, 3).map((venta, index) => (
-                    <div key={index}>{venta.habitacion || "-"}</div>
+                  {lote.veladas.slice(0, 3).map((v, index) => (
+                    <div key={index}>
+                      {typeof v.cantidad === "number"
+                        ? v.cantidad.toFixed(2)
+                        : v.cantidad}
+                    </div>
                   ))}
-                  {lote.ventas.length > 3 && (
+                  {lote.veladas.length > 3 && (
                     <div className="text-gray-400 text-sm italic">otros...</div>
                   )}
                 </td>
-                <td className="px-6 py-4 flex gap-2">
+
+                {/* Responsable(s) */}
+                <td className="px-6 py-4 text-center">
+                  {lote.veladas.slice(0, 3).map((v, index) => (
+                    <div key={index}>{v.responsable || "-"}</div>
+                  ))}
+                  {lote.veladas.length > 3 && (
+                    <div className="text-gray-400 text-sm italic">otros...</div>
+                  )}
+                </td>
+
+                {/* Observación(es) */}
+                <td className="px-6 py-4 text-center">
+                  {lote.veladas.slice(0, 3).map((v, index) => (
+                    <div key={index}>{v.observacion || "-"}</div>
+                  ))}
+                  {lote.veladas.length > 3 && (
+                    <div className="text-gray-400 text-sm italic">otros...</div>
+                  )}
+                </td>
+
+                <td className="px-6 py-4 flex gap-2 justify-center">
                   <button
                     onClick={() => {
-                      setSelectedVenta(lote);
+                      setSelectedVeladaLote(lote);
                       setIsModalOpen(true);
                     }}
                     className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-xs cursor-pointer"
@@ -398,29 +334,31 @@ function VentasList({
         </table>
       </div>
 
-      <ModalBigVarios
+      {/* Modal para editar lote de veladas */}
+      <ModalBig
         isOpen={isModalOpen}
         closeModal={() => setIsModalOpen(false)}
         component={
-          selectedVenta ? (
-            <VentasVariasFormPage
+          selectedVeladaLote ? (
+            <VeladasVariasFormPage
               closeModal={() => setIsModalOpen(false)}
               refreshPagina={refreshPagina}
-              venta={selectedVenta}
+              velada={selectedVeladaLote}
               products={products}
             />
           ) : null
         }
-        vistaActiva={vistaActiva}
       />
+
+      {/* Modal de confirmación para eliminar lote */}
       <ModalConfirmacion
         isOpen={mostrarModal}
         onClose={() => setMostrarModal(false)}
         onConfirm={confirmarEliminarLote}
-        mensaje="¿Estás seguro de que deseas eliminar este lote de ventas?"
+        mensaje="¿Estás seguro de que deseas eliminar este lote de veladas?"
       />
     </div>
   );
 }
 
-export default VentasList;
+export default VeladasProductList;
