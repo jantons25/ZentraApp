@@ -226,7 +226,7 @@ function ReposicionesVariasFormPage({
             <option value="203">203</option>
             <option value="204">204</option>
             <option value="205">205</option>
-            <option value="205">206</option>
+            <option value="206">206</option>
             <option value="301">301</option>
             <option value="302">302</option>
             <option value="303">303</option>
