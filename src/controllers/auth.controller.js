@@ -18,7 +18,7 @@ export const register = async (req, res) => {
     const userFound = await User.findOne({ username });
     if (userFound) return res.status(400).json({ message: "Usuario ya existe" });
 
-    const allowedRoles = ["user", "admin", "superadmin"];
+    const allowedRoles = ["user", "admin", "superadmin", "recepcionista"];
     const finalRole = allowedRoles.includes(role) ? role : "user";
 
     const passwordHash = await bcrypt.hash(password, 10);
