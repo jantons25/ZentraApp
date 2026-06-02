@@ -5,6 +5,7 @@ import ModalConfirmacion from "./ModalConfirmacion.jsx";
 import VeladasVariasFormPage from "./VeladasVariasFormPage.jsx";
 
 function VeladasProductList({ veladas, products, closeModal, refreshPagina }) {
+  console.log(veladas)
   const { deleteLoteVeladas } = useVelada();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVeladaLote, setSelectedVeladaLote] = useState(null);

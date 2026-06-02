@@ -5,6 +5,7 @@ import {
   getVenta,
   deleteVenta,
   updateVenta,
+  updateVentaById,
   getAllVentas,
   deleteLoteVentas,
 } from "../controllers/venta.controller.js";
@@ -36,7 +37,14 @@ router.put(
   updateVenta
 );
 
-router.delete("/ventas/:id", authRequired, deleteVenta);
+router.put(
+  "/ventas/:id",
+  authRequired,
+  validateSchema(updateVentaUnitSchema),
+  updateVentaById
+);
+
 router.delete("/ventas/lote/:id_lote", authRequired, deleteLoteVentas);
+router.delete("/ventas/:id", authRequired, deleteVenta);
 
 export default router;

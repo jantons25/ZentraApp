@@ -1,6 +1,8 @@
 import Salidas from "../models/salidas.model.js";
 import Compra from "../models/compra.model.js";
 import Product from "../models/product.model.js";
+import Venta from "../models/venta.model.js";
+import { generarIdLote, consumirStockComprasFIFO, revertirConsumoCompras } from "../utils/stockOperations.js";
 
 export const obtenerSalidasPorUsuario = async (userId) => {
   return await Salidas.find({ user: userId })
@@ -9,27 +11,19 @@ export const obtenerSalidasPorUsuario = async (userId) => {
     .populate("lotes_usados.compra");
 };
 
-export const obtenerTodasLasSalidas = async () => {
-  return await Salidas.find()
+export const obtenerTodasLasSalidas = async (sede) => {
+  const query = sede ? { sede } : {};
+  return await Salidas.find(query)
     .populate("user")
     .populate("producto")
     .populate("lotes_usados.compra");
 };
 
-export const crearSalidas = async (salidasInput, userId) => {
+export const crearSalidas = async (salidasInput, userId, sede) => {
   const salidas = Array.isArray(salidasInput) ? salidasInput : [salidasInput];
-  if (salidas.length === 0)
-    throw new Error("No se proporcionaron salidas válidas.");
+  if (salidas.length === 0) throw new Error("No se proporcionaron salidas válidas.");
 
-  const ultimaSalida = await Salidas.findOne().sort({ createdAt: -1 });
-  let nuevoLoteNumero = 1;
-
-  if (ultimaSalida?.id_lote) {
-    const ultimoLote = parseInt(ultimaSalida.id_lote, 10);
-    if (!isNaN(ultimoLote)) nuevoLoteNumero = ultimoLote + 1;
-  }
-
-  const nuevoIdLote = String(nuevoLoteNumero).padStart(3, "0");
+  const nuevoIdLote = await generarIdLote("salida");
   const salidasGuardadas = [];
   const detalles_fifo = [];
 
@@ -40,38 +34,7 @@ export const crearSalidas = async (salidasInput, userId) => {
       throw new Error("Cantidad inválida para la salida.");
     }
 
-    let cantidadRestante = cantidad;
-    const lotes_usados = [];
-
-    const comprasDisponibles = await Compra.find({
-      producto,
-      cantidad_disponible: { $gt: 0 },
-    }).sort({ fecha_vencimiento: 1, createdAt: 1 });
-
-    console.log("Compras disponibles:", comprasDisponibles);
-
-    for (const compra of comprasDisponibles) {
-      console.log("Procesando compra:", compra);
-      if (cantidadRestante <= 0) break;
-
-      const usar = Math.min(compra.cantidad_disponible, cantidadRestante);
-      compra.cantidad_disponible -= usar;
-      await compra.save();
-
-      lotes_usados.push({
-        compra: compra._id,
-        cantidad_usada: usar,
-        precio_compra: compra.precio_compra,
-        lote: compra.id_lote,
-        fecha_vencimiento: compra.fecha_vencimiento,
-      });
-
-      cantidadRestante -= usar;
-    }
-
-    if (cantidadRestante > 0) {
-      throw new Error("No hay suficiente stock disponible para esta salida.");
-    }
+    const lotes_usados = await consumirStockComprasFIFO(Compra, producto, cantidad, sede);
 
     const fecha_vencimiento_min =
       lotes_usados
@@ -88,6 +51,7 @@ export const crearSalidas = async (salidasInput, userId) => {
       motivo: motivo || "Uso interno",
       lotes_usados,
       fecha_vencimiento_min,
+      sede: sede || "",
     });
 
     const guardada = await nuevaSalida.save();
@@ -111,93 +75,66 @@ export const crearSalidas = async (salidasInput, userId) => {
   }
 
   return {
-    message:
-      salidas.length > 1
-        ? "Salidas registradas exitosamente"
-        : "Salida registrada exitosamente",
+    message: salidas.length > 1
+      ? "Salidas registradas exitosamente"
+      : "Salida registrada exitosamente",
     salidas: salidasGuardadas,
     detalles_fifo,
   };
 };
 
-export const actualizarLoteSalidas = async (ids, nuevasSalidas, userId) => {
+export const actualizarLoteSalidas = async (ids, nuevasSalidas, userId, sede) => {
+  const salidasPrevias = await Salidas.find({ _id: { $in: ids } });
+  if (!salidasPrevias.length) throw new Error("No se encontraron salidas para actualizar.");
+
+  for (const salida of salidasPrevias) {
+    const tieneVentas = await Venta.exists({ "lotes_vendidos.salida_id": salida._id });
+    if (tieneVentas) throw new Error("No se puede actualizar: una salida del lote tiene ventas asociadas.");
+    if (salida.cantidad_disponible < salida.cantidad) throw new Error("No se puede actualizar: una salida ya fue parcialmente utilizada.");
+  }
+
   await eliminarLoteSalidasPorId(ids);
-  return await crearSalidas(nuevasSalidas, userId);
+  return await crearSalidas(nuevasSalidas, userId, sede);
 };
 
 export const eliminarSalidaPorId = async (salidaId) => {
   const salida = await Salidas.findById(salidaId);
   if (!salida) throw new Error("Salida no encontrada");
 
-  // Validación de uso parcial
-  /* if (salida.cantidad_disponible < salida.cantidad) {
-    throw new Error(
-      "No se puede eliminar la salida porque ya fue parcialmente utilizada."
-    );
-  } */
-
-  // candado real: ¿hay ventas que referencian esta salida?
-  /* const tieneVentas = await Venta.exists({
-    "lotes_vendidos.salida_id": salidaId,
-  });
+  const tieneVentas = await Venta.exists({ "lotes_vendidos.salida_id": salidaId });
   if (tieneVentas) {
     throw new Error("No se puede eliminar la salida: tiene ventas asociadas.");
-  } */
+  }
 
-  // Revertir stock en producto
   const producto = await Product.findById(salida.producto);
   if (producto) {
-    producto.salidas = Math.max(
-      0,
-      producto.salidas - parseInt(salida.cantidad)
-    );
+    producto.salidas = Math.max(0, producto.salidas - parseInt(salida.cantidad));
     await producto.save();
   }
 
-  // Revertir disponibilidad en las compras
-  for (const lote of salida.lotes_usados) {
-    const compra = await Compra.findById(lote.compra);
-    if (compra) {
-      compra.cantidad_disponible += lote.cantidad_usada;
-      await compra.save();
-    }
-  }
-
+  await revertirConsumoCompras(Compra, salida.lotes_usados);
   await Salidas.findByIdAndDelete(salidaId);
+
   return { message: "Salida eliminada correctamente" };
 };
 
 export const eliminarLoteSalidasPorId = async (id) => {
   const salidas = await Salidas.find({ _id: { $in: id } });
-
-  if (!salidas.length) {
-    throw new Error("Lote no encontrado");
-  }
-
-  /* for (const salida of salidas) {
-    console.log(salida);
-    if (salida.cantidad_disponible < salida.cantidad) {
-      throw new Error(
-        `No se puede eliminar el lote ${id_lote} porque ya ha sido parcialmente utilizado.`
-      );
-    }
-  } */
+  if (!salidas.length) throw new Error("Lote no encontrado");
 
   for (const salida of salidas) {
+    const tieneVentas = await Venta.exists({ "lotes_vendidos.salida_id": salida._id });
+    if (tieneVentas) {
+      throw new Error("No se puede eliminar: una salida del lote tiene ventas asociadas.");
+    }
+
     const producto = await Product.findById(salida.producto);
     if (producto) {
       producto.salidas = Math.max(0, producto.salidas - salida.cantidad);
       await producto.save();
     }
 
-    for (const lote of salida.lotes_usados) {
-      const compra = await Compra.findById(lote.compra);
-      if (compra) {
-        compra.cantidad_disponible += lote.cantidad_usada;
-        await compra.save();
-      }
-    }
-
+    await revertirConsumoCompras(Compra, salida.lotes_usados);
     await Salidas.findByIdAndDelete(salida._id);
   }
 
@@ -206,48 +143,38 @@ export const eliminarLoteSalidasPorId = async (id) => {
 
 export const eliminarLoteSalidasPorIdCompleto = async (id_lote) => {
   const salidas = await Salidas.find({ id_lote });
-
-  if (!salidas.length) {
-    throw new Error("Lote no encontrado");
-  }
+  if (!salidas.length) throw new Error("Lote no encontrado");
 
   for (const salida of salidas) {
+    const tieneVentas = await Venta.exists({ "lotes_vendidos.salida_id": salida._id });
+    if (tieneVentas) {
+      throw new Error("No se puede eliminar: una salida del lote tiene ventas asociadas.");
+    }
+
     const producto = await Product.findById(salida.producto);
     if (producto) {
       producto.salidas = Math.max(0, producto.salidas - salida.cantidad);
       await producto.save();
     }
 
-    for (const lote of salida.lotes_usados) {
-      const compra = await Compra.findById(lote.compra);
-      if (compra) {
-        compra.cantidad_disponible += lote.cantidad_usada;
-        await compra.save();
-      }
-    }
-
+    await revertirConsumoCompras(Compra, salida.lotes_usados);
     await Salidas.findByIdAndDelete(salida._id);
   }
 
   return { message: "Lote eliminado correctamente" };
 };
 
-export const actualizarSalidaIndividual = async (
-  salidaId,
-  datosActualizados
-) => {
+export const actualizarSalidaIndividual = async (salidaId, datosActualizados) => {
   const salida = await Salidas.findById(salidaId);
   if (!salida) throw new Error("Salida no encontrada");
 
-  /* if (salida.cantidad_disponible < salida.cantidad) {
-    throw new Error(
-      "No se puede actualizar la salida porque ya fue parcialmente utilizada."
-    );
-  } */
+  if (salida.cantidad_disponible < salida.cantidad) {
+    throw new Error("No se puede actualizar la salida porque ya fue parcialmente utilizada.");
+  }
 
-  // Eliminar la salida original
+  const userId = salida.user;
+  const sede = salida.sede;
+
   await eliminarSalidaPorId(salidaId);
-
-  // Crear la nueva salida
-  return await crearSalidas(datosActualizados, datosActualizados.user);
+  return await crearSalidas(datosActualizados, userId, sede);
 };

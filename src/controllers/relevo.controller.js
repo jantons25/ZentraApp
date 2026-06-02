@@ -4,27 +4,23 @@ export const getRelevos = async (req, res) => {
   try {
     const relevos = await Relevo.find({
       user: req.user.id,
+      sede: req.user.sede,
     }).populate('user');
-
     res.json(relevos);
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener los relevos' });
   }
-}
+};
 
 export const getAllRelevos = async (req, res) => {
   try {
-    const relevos = await Relevo.find().populate("user")
+    const relevos = await Relevo.find({ sede: req.user.sede }).populate("user");
     res.json(relevos);
   } catch (error) {
-    console.error('🛑 Error al obtener los relevos:', error); // Agrega esto
-    res.status(500).json({
-      message: 'Error al obtener los relevos',
-      error: error.message,
-      stack: error.stack,
-    });
+    console.error('Error al obtener los relevos:', error.message);
+    res.status(500).json({ message: 'Error al obtener los relevos' });
   }
-}
+};
 
 export const createRelevo = async (req, res) => {
   try {
@@ -36,15 +32,15 @@ export const createRelevo = async (req, res) => {
       observacion,
       conformidad,
       user: req.user.id,
+      sede: req.user.sede,
     });
 
     const saveRelevo = await newRelevo.save();
-
     res.json(saveRelevo);
   } catch (error) {
     res.status(500).json({ message: 'Error al crear el relevo' });
   }
-}
+};
 
 export const getRelevo = async (req, res) => {
   try {
@@ -55,7 +51,7 @@ export const getRelevo = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener el relevo' });
   }
-}
+};
 
 export const deleteRelevo = async (req, res) => {
   try {
@@ -66,7 +62,7 @@ export const deleteRelevo = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error al eliminar el relevo' });
   }
-}
+};
 
 export const updateRelevo = async (req, res) => {
   try {
@@ -82,5 +78,4 @@ export const updateRelevo = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error al actualizar el relevo' });
   }
-}
-
+};

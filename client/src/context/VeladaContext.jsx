@@ -18,15 +18,22 @@ export const useVelada = () => {
   return context;
 };
 
+const getErrorMsg = (error) =>
+  error.response?.data?.message || error.response?.data?.error || error.message || "Error inesperado";
+
 export function VeladaProvider({ children }) {
   const [veladas, setVeladas] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const getVeladas = async () => {
+    setLoading(true);
     try {
       const res = await getVeladasRequest();
       setVeladas(res.data);
     } catch (error) {
-      toast.error(`Error al obtener las veladas: ${error.response.data.error}`);
+      toast.error(`Error al obtener las veladas: ${getErrorMsg(error)}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,20 +45,19 @@ export function VeladaProvider({ children }) {
         toast.success("Velada eliminada");
       }
     } catch (error) {
-      toast.error(`Error al eliminar la velada: ${error.response.data.error}`);
+      toast.error(`Error al eliminar la velada: ${getErrorMsg(error)}`);
     }
   };
 
   const deleteLoteVeladas = async (id_lote) => {
     try {
-      await deleteLoteVeladasRequest(id_lote);
-      // Opcional: podrías limpiar el state local filtrando por id_lote
-      setVeladas((prev) => prev.filter((velada) => velada.id_lote !== id_lote));
-      toast.success("Lote de veladas eliminado");
+      const res = await deleteLoteVeladasRequest(id_lote);
+      if (res.status === 200) {
+        setVeladas((prev) => prev.filter((velada) => velada.id_lote !== id_lote));
+        toast.success("Lote de veladas eliminado");
+      }
     } catch (error) {
-      toast.error(
-        `Error al eliminar el lote de veladas: ${error.response.data.error}`
-      );
+      toast.error(`Error al eliminar el lote de veladas: ${getErrorMsg(error)}`);
     }
   };
 
@@ -60,9 +66,9 @@ export function VeladaProvider({ children }) {
       const res = await createVeladaRequest(velada);
       const nuevas = Array.isArray(res.data.veladas) ? res.data.veladas : [];
       setVeladas((prev) => [...prev, ...nuevas]);
-      toast.success("Productos registrados");
+      toast.success("Velada registrada");
     } catch (error) {
-      toast.error(`Error al crear la velada: ${error.response.data.error}`);
+      toast.error(`Error al crear la velada: ${getErrorMsg(error)}`);
     }
   };
 
@@ -77,12 +83,10 @@ export function VeladaProvider({ children }) {
         return [...filtradas, ...nuevas];
       });
 
-      toast.success("Lote de productos veladas actualizado");
+      toast.success("Lote de veladas actualizado");
       return nuevas;
     } catch (error) {
-      toast.error(
-        `Error al actualizar el lote de veladas: ${error.response.data.error}`
-      );
+      toast.error(`Error al actualizar el lote de veladas: ${getErrorMsg(error)}`);
     }
   };
 
@@ -90,6 +94,7 @@ export function VeladaProvider({ children }) {
     <VeladaContext.Provider
       value={{
         veladas,
+        loading,
         getVeladas,
         createVelada,
         deleteVelada,

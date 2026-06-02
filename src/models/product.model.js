@@ -10,7 +10,6 @@ const productSchema = new mongoose.Schema(
     nombre: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
       default: "",
     },
@@ -54,13 +53,13 @@ const productSchema = new mongoose.Schema(
     },
     precio_venta_base: {
       type: Number,
-      default: 0.0,
-      min: 0.0,
+      default: 0,
+      min: 0,
     },
     precio_venta: {
       type: Number,
-      default: 0.0,
-      min: 0.0,
+      default: 0,
+      min: 0,
     },
     estado: {
       type: String,
@@ -96,34 +95,33 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    precio_venta: {
-      type: Number,
-      default: 0.0,
-    },
     importe_compra: {
       type: Number,
-      default: 0.0,
+      default: 0,
     },
     importe_venta: {
       type: Number,
-      default: 0.0,
+      default: 0,
     },
     margen_unitario: {
       type: Number,
-      default: 0.0,
+      default: 0,
     },
     margen_acumulado: {
       type: Number,
-      default: 0.0,
+      default: 0,
     },
-    importe_venta: {
-      type: Number,
-      default: 0.0,
+    sede: {
+      type: String,
+      enum: ["", "Nexus", "ZentraSanJose", "ZentraPlaza", "ZentraBalta"],
+      default: "",
     },
   },
   {
     timestamps: true,
   }
 );
+
+productSchema.index({ nombre: 1, sede: 1 }, { unique: true });
 
 export default mongoose.model("Product", productSchema);

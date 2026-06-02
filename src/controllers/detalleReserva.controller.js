@@ -22,8 +22,8 @@ export const registrarDetalleReserva = async (req, res) => {
     const status = error.message.includes("inválido")
       ? 400
       : error.message.includes("no encontrada")
-      ? 404
-      : 400;
+        ? 404
+        : 400;
 
     res.status(status).json({ mensaje: error.message });
   }
@@ -41,6 +41,7 @@ export const registrarPagoDetalleReserva = async (req, res) => {
       referencia,
       comprobante_url,
       fecha_pago,
+      sede
     } = req.body;
 
     if (!monto_pago || Number(monto_pago) <= 0) {
@@ -57,6 +58,7 @@ export const registrarPagoDetalleReserva = async (req, res) => {
       referencia,
       comprobante_url,
       fecha_pago,
+      sede,
       registrado_por: req.user?.id || null, // mejor desde auth
     });
 
@@ -65,8 +67,8 @@ export const registrarPagoDetalleReserva = async (req, res) => {
     const status = error.message.includes("inválido")
       ? 400
       : error.message.includes("no encontrado")
-      ? 404
-      : 400;
+        ? 404
+        : 400;
 
     res.status(status).json({ mensaje: error.message });
   }

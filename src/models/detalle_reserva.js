@@ -39,6 +39,11 @@ const pagoSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+    sede: {
+      type: String,
+      enum: ["", "Nexus", "ZentraSanJose", "ZentraPlaza", "ZentraBalta"],
+      default: "",
+    },
   },
   { _id: true }
 );
@@ -117,6 +122,11 @@ const detalleReservaSchema = new mongoose.Schema(
     pagos: {
       type: [pagoSchema],
       default: [],
+    },
+    sede: {
+      type: String,
+      enum: ["", "Nexus", "ZentraSanJose", "ZentraPlaza", "ZentraBalta"],
+      default: "",
     },
   },
   {

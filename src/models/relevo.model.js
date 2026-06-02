@@ -6,7 +6,7 @@ const relevoSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    recepcioista: {
+    recepcionista: {
       type: String,
       required: true,
     },
@@ -22,6 +22,11 @@ const relevoSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+    sede: {
+      type: String,
+      enum: ["", "Nexus", "ZentraSanJose", "ZentraPlaza", "ZentraBalta"],
+      default: "",
     },
   },
   {

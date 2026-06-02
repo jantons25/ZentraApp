@@ -21,40 +21,46 @@ export const useSalida = () => {
   return context;
 };
 
+const getErrorMsg = (error) =>
+  error.response?.data?.message || error.response?.data?.error || error.message || "Error inesperado";
+
 export function SalidaProvider({ children }) {
   const [salidas, setSalidas] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const getSalidas = async () => {
+    setLoading(true);
     try {
       const res = await getSalidasRequest();
       setSalidas(res.data);
     } catch (error) {
-      toast.error(
-        `Error al obtener todas las salidas: ${error.response.data.error}`
-      );
+      toast.error(`Error al obtener las salidas: ${getErrorMsg(error)}`);
+    } finally {
+      setLoading(false);
     }
   };
 
   const getAllSalidas = async () => {
+    setLoading(true);
     try {
       const res = await getAllSalidasRequest();
       setSalidas(res.data);
     } catch (error) {
-      toast.error(
-        `Error al obtener todas las salidas: ${error.response.data.error}`
-      );
+      toast.error(`Error al obtener todas las salidas: ${getErrorMsg(error)}`);
+    } finally {
+      setLoading(false);
     }
   };
 
   const deleteSalida = async (id) => {
     try {
       const res = await deleteSalidaRequest(id);
-      if (res.status === 204) {
+      if (res.status === 200 || res.status === 204) {
         setSalidas((prev) => prev.filter((salida) => salida._id !== id));
         toast.success("Salida eliminada");
       }
     } catch (error) {
-      toast.error(`Error al eliminar la salida: ${error.response.data.error}`);
+      toast.error(`Error al eliminar la salida: ${getErrorMsg(error)}`);
     }
   };
 
@@ -66,9 +72,7 @@ export function SalidaProvider({ children }) {
         toast.success("Lote de salidas eliminado");
       }
     } catch (error) {
-      toast.error(
-        `No se pudo eliminar el lote de salidas: ${error.response.data.error}`
-      );
+      toast.error(`No se pudo eliminar el lote de salidas: ${getErrorMsg(error)}`);
     }
   };
 
@@ -80,9 +84,7 @@ export function SalidaProvider({ children }) {
         toast.success("Lote de salidas eliminado");
       }
     } catch (error) {
-      toast.error(
-        `No se pudo eliminar el lote de salidas: ${error.response.data.error}`
-      );
+      toast.error(`No se pudo eliminar el lote de salidas: ${getErrorMsg(error)}`);
     }
   };
 
@@ -99,7 +101,7 @@ export function SalidaProvider({ children }) {
       toast.success("Salidas registradas con éxito");
       return nuevas;
     } catch (error) {
-      toast.error(`Error al registrar salidas: ${error.response.data.error}`);
+      toast.error(`Error al registrar salidas: ${getErrorMsg(error)}`);
       throw error;
     }
   };
@@ -110,9 +112,7 @@ export function SalidaProvider({ children }) {
       toast.success("Salida actualizada correctamente");
       return res.data;
     } catch (error) {
-      toast.error(
-        `Error al actualizar la salida: ${error.response.data.error}`
-      );
+      toast.error(`Error al actualizar la salida: ${getErrorMsg(error)}`);
       throw error;
     }
   };
@@ -129,9 +129,7 @@ export function SalidaProvider({ children }) {
       toast.success("Lote de salidas actualizado");
       return res.data;
     } catch (error) {
-      toast.error(
-        `No se pudo actualizar el lote de salidas: ${error.response.data.error}`
-      );
+      toast.error(`No se pudo actualizar el lote de salidas: ${getErrorMsg(error)}`);
       throw error;
     }
   };
@@ -140,6 +138,7 @@ export function SalidaProvider({ children }) {
     <SalidaContext.Provider
       value={{
         salidas,
+        loading,
         getSalidas,
         getAllSalidas,
         deleteSalida,

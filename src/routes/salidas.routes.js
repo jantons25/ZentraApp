@@ -49,13 +49,13 @@ router.put(
   updateSalida
 );
 
-// Eliminar salida individual
-router.delete("/salidas/:id", authRequired, deleteSalida);
+// Eliminar lote de salidas completo (debe ir primero para evitar conflicto con /:id)
+router.delete("/salidas/lote/completo/:id_lote", authRequired, deleteLoteSalidaCompleta);
 
 // Eliminar lote de salidas
 router.delete("/salidas/lote/:id_lote", authRequired, deleteLoteSalida);
 
-// Eliminar lote de salidas completo
-router.delete("/salidas/lote/completo/:id_lote", authRequired, deleteLoteSalidaCompleta);
+// Eliminar salida individual
+router.delete("/salidas/:id", authRequired, deleteSalida);
 
 export default router;

@@ -63,6 +63,11 @@ const ventaSchema = new mongoose.Schema({
     ref: "Product",
     required: true,
   },
+  sede: {
+    type: String,
+    enum: ["", "Nexus", "ZentraSanJose", "ZentraPlaza", "ZentraBalta"],
+    default: "",
+  },
 }, {
   timestamps: true,
 });

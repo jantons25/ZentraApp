@@ -1,6 +1,6 @@
 import Categoria from "../models/categoria.model.js";
 
-export const crearCategoria = async (data) => {
+export const crearCategoria = async (data, sede) => {
   try {
     // 1. Validación: evitar duplicados por nombre
     const categoriaExistente = await Categoria.findOne({
@@ -20,7 +20,8 @@ export const crearCategoria = async (data) => {
       nombre: data.nombre.trim(),
       descripcion: data.descripcion || "",
       estado: data.estado !== undefined ? data.estado : "activo",
-      user: data.user, // Asumiendo que 'user' es un ID de usuario válido
+      user: data.user,
+      sede: sede || "",
     });
     await nuevaCategoria.save();
 
@@ -31,10 +32,11 @@ export const crearCategoria = async (data) => {
   }
 };
 
-export const getCategorias = async () => {
+export const getCategorias = async (sede) => {
   try {
-    // 1. Obtener todas las categorías ordenadas por nombre
-    const categorias = await Categoria.find().sort({ nombre: 1 });
+    // 1. Obtener categorías filtradas por sede
+    const query = sede ? { sede } : {};
+    const categorias = await Categoria.find(query).sort({ nombre: 1 });
 
     // 2. Verificar si se encontraron categorías
     if (!categorias.length) {

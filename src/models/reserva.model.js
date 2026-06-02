@@ -136,6 +136,11 @@ const reservaSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    sede: {
+      type: String,
+      enum: ["", "Nexus", "ZentraSanJose", "ZentraPlaza", "ZentraBalta"],
+      default: "",
+    },
   },
   {
     timestamps: true,

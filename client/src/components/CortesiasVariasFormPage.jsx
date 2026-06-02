@@ -222,7 +222,7 @@ function CortesiasVariasFormPage({
             <option value="Luz">Luz</option>
             <option value="Miriam">Miriam</option>
             <option value="Maryorie">Maryorie</option>
-            <option value="Yadira">Yadira</option>
+            <option value="Yadira">Dania</option>
           </select>
         </div>
 

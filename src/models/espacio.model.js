@@ -22,6 +22,11 @@ const tarifaSchema = new mongoose.Schema(
       default: [], // vacío = aplica a todos
     },
     activo: { type: Boolean, default: true },
+    sede: {
+      type: String,
+      enum: ["", "Nexus", "ZentraSanJose", "ZentraPlaza", "ZentraBalta"],
+      default: "",
+    },
   },
   { _id: true }
 );
@@ -123,6 +128,11 @@ const espacioSchema = new mongoose.Schema(
     color_tag: {
       type: String,
       trim: true,
+      default: "",
+    },
+    sede: {
+      type: String,
+      enum: ["", "Nexus", "ZentraSanJose", "ZentraPlaza", "ZentraBalta"],
       default: "",
     },
   },

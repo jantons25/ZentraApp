@@ -51,9 +51,10 @@ export const createEspacio = async (data) => {
   }
 };
 
-export const getEspacios = async ({ soloActivos = false } = {}) => {
+export const getEspacios = async ({ soloActivos = false, sede } = {}) => {
   try {
     const query = soloActivos ? { estado: "activo" } : {};
+    if (sede) query.sede = sede;
     const espacios = await Espacio.find(query).sort({ nombre: 1 });
     return espacios; // devuelve []
   } catch (error) {

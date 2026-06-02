@@ -9,7 +9,7 @@ import {
 //Crear Cliente
 export const registrarCategoria = async (req, res) => {
   try {
-    const resultado = await crearCategoria(req.body);
+    const resultado = await crearCategoria(req.body, req.user.sede);
     res.status(201).json(resultado);
   } catch (error) {
     res.status(400).json({ mensaje: error.message });
@@ -19,7 +19,7 @@ export const registrarCategoria = async (req, res) => {
 //Obtener todas las categorías
 export const obtenerCategorias = async (req, res) => {
   try {
-    const categorias = await getCategorias();
+    const categorias = await getCategorias(req.user.sede);
     res.status(200).json(categorias);
   } catch (error) {
     res.status(404).json({ mensaje: error.message });

@@ -18,9 +18,12 @@ export const useReserva = () => {
   return context;
 };
 
+const getErrorMsg = (error) =>
+  error.response?.data?.mensaje || error.response?.data?.message || error.response?.data?.error || error.message || "Error inesperado";
+
 export function ReservaProvider({ children }) {
   const [reservas, setReservas] = useState({
-    data: [], // Array de reservas
+    data: [],
     pagination: {
       page: 1,
       limit: 50,
@@ -28,23 +31,21 @@ export function ReservaProvider({ children }) {
       totalPages: 0,
     },
   });
+  const [loading, setLoading] = useState(false);
 
   const getReservas = async () => {
+    setLoading(true);
     try {
       const res = await getReservasRequest();
-      // La API devuelve: {data: [...], pagination: {...}}
-      setReservas(res.data); // Guardar la estructura completa
+      setReservas(res.data);
     } catch (error) {
-      toast.error(
-        `Error al obtener las reservas: ${
-          error.response?.data?.error || error.message
-        }`
-      );
-      // Inicializar con estructura vacía pero correcta
+      toast.error(`Error al obtener las reservas: ${getErrorMsg(error)}`);
       setReservas({
         data: [],
         pagination: { page: 1, limit: 50, total: 0, totalPages: 0 },
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,7 +54,7 @@ export function ReservaProvider({ children }) {
       const res = await getReservaRequest(id);
       return res.data;
     } catch (error) {
-      toast.error(`Error al obtener la reserva: ${error.response.data.error}`);
+      toast.error(`Error al obtener la reserva: ${getErrorMsg(error)}`);
     }
   };
 
@@ -62,15 +63,14 @@ export function ReservaProvider({ children }) {
       const res = await createReservaRequest(reservaData);
 
       setReservas((prev) => {
-        // Crear el objeto con la estructura correcta
         const nuevoItem = {
-          reserva: res.data.reserva, // ← Reserva completa
-          detalle: res.data.detalle || null, // ← Detalle o null
+          reserva: res.data.reserva,
+          detalle: res.data.detalle || null,
         };
 
         return {
           ...prev,
-          data: [...prev.data, nuevoItem], // ← Agregar el objeto completo
+          data: [...prev.data, nuevoItem],
           pagination: {
             ...prev.pagination,
             total: prev.pagination.total + 1,
@@ -80,11 +80,7 @@ export function ReservaProvider({ children }) {
 
       toast.success("Reserva creada");
     } catch (error) {
-      toast.error(
-        `Error al crear la reserva: ${
-          error.response?.data?.error || error.message
-        }`
-      );
+      toast.error(`Error al crear la reserva: ${getErrorMsg(error)}`);
     }
   };
 
@@ -98,40 +94,32 @@ export function ReservaProvider({ children }) {
           detalle: res.data.detalle || null,
         };
 
-        // CORRECCIÓN: Usar map para reemplazar el elemento específico
         const nuevoData = prev.data.map((item) => {
-          // Comparar el _id dentro de reserva
           if (item.reserva._id === id) {
-            return nuevoItem; // Reemplazar el elemento completo
+            return nuevoItem;
           }
-          return item; // Mantener los demás
+          return item;
         });
 
-        // Retornar la nueva estructura de estado completa
         return {
           ...prev,
           data: nuevoData,
-          // No modificar pagination.total porque no estamos agregando/eliminando
           pagination: prev.pagination,
         };
       });
 
       toast.success("Reserva actualizada");
     } catch (error) {
-      toast.error(
-        `Error al actualizar la reserva: ${
-          error.response?.data?.error || error.message
-        }`
-      );
+      toast.error(`Error al actualizar la reserva: ${getErrorMsg(error)}`);
     }
   };
 
   const cancelReserva = async (id) => {
     try {
-      const res = await cancelReservaRequest(id);
+      await cancelReservaRequest(id);
       toast.success("Reserva cancelada");
     } catch (error) {
-      toast.error(`Error al cancelar la reserva: ${error.response.data.error}`);
+      toast.error(`Error al cancelar la reserva: ${getErrorMsg(error)}`);
     }
   };
 
@@ -139,6 +127,7 @@ export function ReservaProvider({ children }) {
     <ReservaContext.Provider
       value={{
         reservas,
+        loading,
         createReserva,
         getReservas,
         getReserva,

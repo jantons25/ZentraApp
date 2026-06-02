@@ -3,7 +3,7 @@ import Reserva from "../models/reserva.model.js";
 import Cliente from "../models/cliente.model.js";
 import DetalleReserva from "../models/detalle_reserva.js";
 
-export const crearReserva = async (data) => {
+export const crearReserva = async (data, sede) => {
   try {
     // 1) Validaciones base
     if (!data.inicio || !data.fin)
@@ -13,6 +13,7 @@ export const crearReserva = async (data) => {
     const fin = new Date(data.fin);
 
     if (isNaN(inicio) || isNaN(fin)) throw new Error("inicio/fin inválidos.");
+    if (inicio < new Date()) throw new Error("No se puede crear una reserva en una fecha pasada.");
     if (fin <= inicio) throw new Error("fin debe ser mayor que inicio.");
 
     // 2) Anti-solapamiento
@@ -92,6 +93,7 @@ export const crearReserva = async (data) => {
       tipo: data.tipo || "interna",
       estado: data.estado || "pendiente",
       observaciones: data.observaciones || "",
+      sede: sede || "",
 
       // ✅ Detalle embebido
       detalle: {
@@ -140,17 +142,29 @@ export const crearReserva = async (data) => {
   }
 };
 
-export const actualizarReserva = async (id, data) => {
+export const actualizarReserva = async (id, data, sede) => {
   try {
     // 1) Buscar la reserva actual
     const reservaActual = await Reserva.findById(id, null);
     if (!reservaActual) throw new Error("Reserva no encontrada.");
+    if (sede && reservaActual.sede && reservaActual.sede !== sede)
+      throw new Error("No tienes acceso a esta reserva.");
 
-    // Si está cancelada/finalizada, normalmente bloqueas edición (ajusta a tu negocio)
     if (["cancelada", "finalizada"].includes(reservaActual.estado)) {
-      throw new Error(
-        "No se puede actualizar una reserva cancelada o finalizada."
-      );
+      throw new Error("No se puede actualizar una reserva cancelada o finalizada.");
+    }
+
+    const transicionesValidas = {
+      pendiente: ["confirmada", "cancelada"],
+      confirmada: ["cancelada", "finalizada"],
+    };
+
+    const nuevoEstado = data.estado || reservaActual.estado;
+    if (nuevoEstado !== reservaActual.estado) {
+      const permitidas = transicionesValidas[reservaActual.estado] || [];
+      if (!permitidas.includes(nuevoEstado)) {
+        throw new Error(`No se puede cambiar de "${reservaActual.estado}" a "${nuevoEstado}".`);
+      }
     }
 
     // 2) Resolver valores nuevos (fallback a lo actual si no viene)
@@ -254,6 +268,7 @@ export const actualizarReserva = async (id, data) => {
       tipo: data.tipo ?? reservaActual.tipo ?? "interna",
       estado: data.estado ?? reservaActual.estado ?? "pendiente",
       observaciones: data.observaciones ?? reservaActual.observaciones ?? "",
+      sede: sede || reservaActual.sede || "",
     };
 
     // Si el estado pasa a "cancelada", captura auditoría (si lo deseas)
@@ -360,7 +375,7 @@ export const actualizarReserva = async (id, data) => {
   }
 };
 
-export const getReservas = async (opts = {}) => {
+export const getReservas = async (opts = {}, sede) => {
   try {
     const {
       filtros = {},
@@ -370,6 +385,7 @@ export const getReservas = async (opts = {}) => {
     } = opts;
 
     const query = {};
+    if (sede) query.sede = sede;
 
     // ✅ Filtros por rango de fechas usando inicio/fin (modelo nuevo)
     if (filtros.desde || filtros.hasta) {
@@ -442,7 +458,7 @@ export const getReservas = async (opts = {}) => {
   }
 };
 
-export const getReservaById = async (id) => {
+export const getReservaById = async (id, sede) => {
   try {
     // 1) Traer la reserva (con populate)
     const reserva = await Reserva.findById(id)
@@ -457,6 +473,8 @@ export const getReservaById = async (id) => {
     if (!reserva) {
       throw new Error("Reserva no encontrada.");
     }
+    if (sede && reserva.sede && reserva.sede !== sede)
+      throw new Error("No tienes acceso a esta reserva.");
 
     // 2) Traer el detalle 1-1 asociado
     const detalle = await DetalleReserva.findOne({ reserva: reserva._id })
@@ -475,12 +493,14 @@ export const getReservaById = async (id) => {
   }
 };
 
-export const eliminarReserva = async (id, usuarioId, motivo = "") => {
+export const eliminarReserva = async (id, usuarioId, motivo = "", sede) => {
 
   try {
     // 1) Buscar reserva
     const reserva = await Reserva.findById(id, null);
     if (!reserva) throw new Error("Reserva no encontrada.");
+    if (sede && reserva.sede && reserva.sede !== sede)
+      throw new Error("No tienes acceso a esta reserva.");
 
     // 2) Validar estado actual
     if (reserva.estado === "cancelada") {

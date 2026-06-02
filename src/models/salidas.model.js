@@ -17,7 +17,7 @@ const salidasSchema = new mongoose.Schema({
   },
   motivo: {
     type: String,
-    default: "Uso interno", 
+    default: "Uso interno",
   },
   producto: {
     type: mongoose.Schema.Types.ObjectId,
@@ -51,7 +51,7 @@ const salidasSchema = new mongoose.Schema({
       },
     },
   ],
-  fecha_vencimiento_min:{
+  fecha_vencimiento_min: {
     type: Date,
     required: false,
   }
@@ -60,6 +60,11 @@ const salidasSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
+  },
+  sede: {
+    type: String,
+    enum: ["", "Nexus", "ZentraSanJose", "ZentraPlaza", "ZentraBalta"],
+    default: "",
   },
 }, {
   timestamps: true,

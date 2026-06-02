@@ -49,10 +49,10 @@ router.put(
   updateCompra
 );
 
+// Eliminar compras por lote (debe ir antes que /:id para evitar conflicto)
+router.delete("/compras/lote/:id_lote", authRequired, deleteLoteCompras);
+
 // Eliminar compra individual
 router.delete("/compras/:id", authRequired, deleteCompra);
-
-// Eliminar compras por lote
-router.delete("/compras/lote/:id_lote", authRequired, deleteLoteCompras);
 
 export default router;

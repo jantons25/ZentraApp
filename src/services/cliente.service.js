@@ -7,7 +7,7 @@ const normEmail = (v) => (v?.trim() ? v.trim().toLowerCase() : undefined);
 const normText = (v) => (v?.trim() ? v.trim() : "");
 const normDni = (v) => (v?.trim() ? v.trim() : undefined);
 
-export const crearCliente = async (data) => {
+export const crearCliente = async (data, sede) => {
   try {
     if (!data?.nombre?.trim()) throw new Error("El nombre es obligatorio.");
 
@@ -52,6 +52,7 @@ export const crearCliente = async (data) => {
       dni, // undefined si no hay
       estado: "activo",
       origen_registro: data.origen_registro || "interno",
+      sede: sede || "",
     });
 
     const clienteGuardado = await nuevoCliente.save();
@@ -65,9 +66,10 @@ export const crearCliente = async (data) => {
   }
 };
 
-export const getClientes = async ({ soloActivos = true } = {}) => {
+export const getClientes = async ({ soloActivos = true, sede } = {}) => {
   try {
     const query = soloActivos ? { estado: "activo" } : {};
+    if (sede) query.sede = sede;
     const clientes = await Cliente.find(query).sort({ nombre: 1 });
 
     return clientes; // si está vacío, devuelve []

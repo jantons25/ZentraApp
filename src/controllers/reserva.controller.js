@@ -13,7 +13,7 @@ export const registrarReserva = async (req, res) => {
     // const usuarioId = req.user?.id;
     // const payload = { ...req.body, usuario: usuarioId || req.body.usuario };
 
-    const resultado = await crearReserva(req.body);
+    const resultado = await crearReserva(req.body, req.user.sede);
     res.status(201).json(resultado);
   } catch (error) {
     res.status(400).json({ mensaje: error.message });
@@ -48,7 +48,7 @@ export const obtenerReservas = async (req, res) => {
       sort: { inicio: -1 },
     };
 
-    const reservas = await getReservas(opts);
+    const reservas = await getReservas(opts, req.user.sede);
     res.status(200).json(reservas);
   } catch (error) {
     res.status(500).json({ mensaje: error.message });
@@ -59,7 +59,7 @@ export const obtenerReservas = async (req, res) => {
 export const obtenerReservaPorId = async (req, res) => {
   try {
     const { id } = req.params;
-    const resultado = await getReservaById(id);
+    const resultado = await getReservaById(id, req.user.sede);
     res.status(200).json(resultado);
   } catch (error) {
     // Si quieres distinguir 400 vs 404, lo ideal es lanzar errores tipados en service.
@@ -77,7 +77,7 @@ export const editarReserva = async (req, res) => {
     // Si usas auth, conviene forzar usuario desde token:
     // const payload = { ...req.body, usuario: req.user?.id };
 
-    const resultado = await actualizarReserva(id, req.body);
+    const resultado = await actualizarReserva(id, req.body, req.user.sede);
     res.status(200).json(resultado);
   } catch (error) {
     res.status(400).json({ mensaje: error.message });
@@ -95,7 +95,7 @@ export const cancelarReserva = async (req, res) => {
     // Motivo opcional
     const motivo = req.body?.motivo_cancelacion || req.body?.motivo || "";
 
-    const resultado = await eliminarReserva(id, usuarioId, motivo);
+    const resultado = await eliminarReserva(id, usuarioId, motivo, req.user.sede);
     res.status(200).json(resultado);
   } catch (error) {
     res.status(400).json({ mensaje: error.message });

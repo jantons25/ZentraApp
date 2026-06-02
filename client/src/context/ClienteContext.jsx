@@ -19,17 +19,22 @@ export const useCliente = () => {
   return context;
 };
 
+const getErrorMsg = (error) =>
+  error.response?.data?.mensaje || error.response?.data?.message || error.response?.data?.error || error.message || "Error inesperado";
+
 export function ClienteProvider({ children }) {
   const [clientes, setClientes] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const getClientes = async () => {
+    setLoading(true);
     try {
       const res = await getClientesRequest();
       setClientes(res.data);
     } catch (error) {
-      toast.error(
-        `Error al obtener los clientes: ${error.response.data.error}`
-      );
+      toast.error(`Error al obtener los clientes: ${getErrorMsg(error)}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,18 +43,17 @@ export function ClienteProvider({ children }) {
       const res = await getClienteRequest(id);
       return res.data;
     } catch (error) {
-      toast.error(`Error al obtener el cliente: ${error.response.data.error}`);
+      toast.error(`Error al obtener el cliente: ${getErrorMsg(error)}`);
     }
   };
 
   const createCliente = async (cliente) => {
     try {
       const res = await createClienteRequest(cliente);
-      console.log(res.data);
       setClientes((prev) => [...prev, res.data.cliente]);
       toast.success("Cliente creado");
     } catch (error) {
-      toast.error(`Error al crear el cliente: ${error.response.data.error}`);
+      toast.error(`Error al crear el cliente: ${getErrorMsg(error)}`);
     }
   };
 
@@ -59,9 +63,7 @@ export function ClienteProvider({ children }) {
       setClientes((prev) => prev.map((c) => (c._id === id ? res.data : c)));
       toast.success("Cliente actualizado");
     } catch (error) {
-      toast.error(
-        `Error al actualizar el cliente: ${error.response.data.error}`
-      );
+      toast.error(`Error al actualizar el cliente: ${getErrorMsg(error)}`);
     }
   };
 
@@ -70,21 +72,19 @@ export function ClienteProvider({ children }) {
       await changeClientePasswordRequest(id, passwordData);
       toast.success("Contraseña cambiada");
     } catch (error) {
-      toast.error(
-        `Error al cambiar la contraseña: ${error.response.data.error}`
-      );
+      toast.error(`Error al cambiar la contraseña: ${getErrorMsg(error)}`);
     }
   };
 
   const deleteCliente = async (id) => {
     try {
       const res = await deleteClienteRequest(id);
-      if (res.status === 204) {
+      if (res.status === 200 || res.status === 204) {
         setClientes((prev) => prev.filter((cliente) => cliente._id !== id));
         toast.success("Cliente eliminado");
       }
     } catch (error) {
-      toast.error(`Error al eliminar el cliente: ${error.response.data.error}`);
+      toast.error(`Error al eliminar el cliente: ${getErrorMsg(error)}`);
     }
   };
 
@@ -92,6 +92,7 @@ export function ClienteProvider({ children }) {
     <ClienteContext.Provider
       value={{
         clientes,
+        loading,
         getClientes,
         getCliente,
         createCliente,

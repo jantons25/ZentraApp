@@ -10,7 +10,7 @@ import {
 // Crear cliente
 export const registrarCliente = async (req, res) => {
   try {
-    const resultado = await crearCliente(req.body);
+    const resultado = await crearCliente(req.body, req.user.sede);
     res.status(201).json(resultado);
   } catch (error) {
     res.status(400).json({ mensaje: error.message });
@@ -21,7 +21,7 @@ export const registrarCliente = async (req, res) => {
 export const obtenerClientes = async (req, res) => {
   try {
     const soloActivos = req.query.soloActivos === "true";
-    const clientes = await getClientes({ soloActivos });
+    const clientes = await getClientes({ soloActivos, sede: req.user.sede });
     res.status(200).json(clientes);
   } catch (error) {
     res.status(500).json({ mensaje: error.message });

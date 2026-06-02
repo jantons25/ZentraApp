@@ -20,20 +20,17 @@ export function useInventarioData() {
   const { getAllSalidas, salidas } = useSalida();
   const { getCompras, getAllCompras, compras, createCompra, deleteCompra, updateCompra } = useCompra();
   const { getAllRelevos, relevos } = useRelevo();
-  const { getUsers, users, user, empresa } = useAuth();
+  const { getUsers, users, user } = useAuth();
   const { reservas, getReservas } = useReserva();
   const { clientes, getClientes } = useCliente();
-  const { detalleReservas, getDetalleReservas } = useDetalleReserva();
+  const { detalleReserva, createDetalleReserva, createPagoDetalleReserva } = useDetalleReserva();
   const { espacios, getEspacios } = useEspacio();
-  const { getVeladas, veladas} = useVelada();
+  const { getVeladas, veladas } = useVelada();
 
   return {
-    // auth
     user,
     users,
     getUsers,
-    empresa,
-    // ventas
     ventas,
     getVentas,
     getAllVentas,
@@ -41,42 +38,32 @@ export function useInventarioData() {
     deleteVenta,
     updateLoteVentas,
     deleteLoteVentas,
-    // productos
     products,
     getProducts,
     getAllProducts,
-    // cortesías
     cortesias,
     getCortesias,
-    // compras
     compras,
     getCompras,
     getAllCompras,
     createCompra,
     deleteCompra,
     updateCompra,
-    // reposiciones
     reposiciones,
     getReposiciones,
-    // salidas
     salidas,
     getAllSalidas,
-    // relevos
     relevos,
     getAllRelevos,
-    // reservas
     reservas,
     getReservas,
-    // clientes
     clientes,
     getClientes,
-    // detalle reservas
-    detalleReservas,
-    getDetalleReservas,
-    // espacios
+    detalleReserva,
+    createDetalleReserva,
+    createPagoDetalleReserva,
     espacios,
     getEspacios,
-    // veladas
     veladas,
     getVeladas,
   };

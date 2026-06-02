@@ -14,13 +14,18 @@ const categoriaSchema = new mongoose.Schema(
       default: "",
     },
     estado: {
-      type: Boolean,
+      type: String,
       enum: ["activo", "inactivo"],
       default: "activo",
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+    },
+    sede: {
+      type: String,
+      enum: ["", "Nexus", "ZentraSanJose", "ZentraPlaza", "ZentraBalta"],
+      default: "",
     },
   },
   {

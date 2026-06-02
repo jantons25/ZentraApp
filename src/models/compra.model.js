@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const compraSchema = new mongoose.Schema({
   id_lote: {
-    type: String, 
+    type: String,
     default: "000"
   },
   cantidad: {
@@ -10,7 +10,7 @@ const compraSchema = new mongoose.Schema({
     min: 0,
     default: 0
   },
-  cantidad_disponible: {                  
+  cantidad_disponible: {
     type: Number,
     min: 0,
     default: 0
@@ -36,7 +36,12 @@ const compraSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
     required: true
-  }
+  },
+  sede: {
+    type: String,
+    enum: ["", "Nexus", "ZentraSanJose", "ZentraPlaza", "ZentraBalta"],
+    default: "",
+  },
 }, {
   timestamps: true
 });

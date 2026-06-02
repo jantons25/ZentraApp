@@ -65,6 +65,11 @@ const veladaSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    sede: {
+      type: String,
+      enum: ["", "Nexus", "ZentraSanJose", "ZentraPlaza", "ZentraBalta"],
+      default: "",
+    },
   },
   { timestamps: true }
 );

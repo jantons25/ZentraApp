@@ -17,6 +17,9 @@ export const useDetalleReserva = () => {
   return context;
 };
 
+const getErrorMsg = (error) =>
+  error.response?.data?.mensaje || error.response?.data?.message || error.response?.data?.error || error.message || "Error inesperado";
+
 export function DetalleReservaProvider({ children }) {
   const [detalleReserva, setDetalleReserva] = useState(null);
 
@@ -27,9 +30,7 @@ export function DetalleReservaProvider({ children }) {
       toast.success("Detalle de reserva creado");
       return res.data;
     } catch (error) {
-      toast.error(
-        `Error al crear el detalle de reserva: ${error.response.data.error}`
-      );
+      toast.error(`Error al crear el detalle de reserva: ${getErrorMsg(error)}`);
     }
   };
 
@@ -40,9 +41,7 @@ export function DetalleReservaProvider({ children }) {
       toast.success("Pago agregado al detalle de reserva");
       return res.data;
     } catch (error) {
-      toast.error(
-        `Error al agregar el pago al detalle de reserva: ${error.response.data.error}`
-      );
+      toast.error(`Error al agregar el pago: ${getErrorMsg(error)}`);
     }
   };
 

@@ -31,6 +31,11 @@ const loteSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
+    sede: {
+        type: String,
+        enum: ["", "Nexus", "ZentraSanJose", "ZentraPlaza", "ZentraBalta"],
+        default: "",
+    },
 }, {
     timestamps: true,
 });

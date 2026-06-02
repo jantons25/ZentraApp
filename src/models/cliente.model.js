@@ -71,6 +71,11 @@ const clienteSchema = new mongoose.Schema(
       enum: ["interno", "web"],
       default: "interno",
     },
+    sede: {
+      type: String,
+      enum: ["", "Nexus", "ZentraSanJose", "ZentraPlaza", "ZentraBalta"],
+      default: "",
+    },
   },
   {
     timestamps: true,

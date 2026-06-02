@@ -9,73 +9,56 @@ import {
 
 export const getCompras = async (req, res) => {
   try {
-    const compras = await Compra.find({ user: req.user.id })
+    const compras = await Compra.find({ user: req.user.id, sede: req.user.sede })
       .populate("user")
       .populate("producto");
     res.json(compras);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error al obtener las compras", error: error.message });
+    console.error("Error getCompras:", error.message);
+    res.status(500).json({ message: "Error al obtener las compras" });
   }
 };
 
 export const getAllCompras = async (req, res) => {
   try {
-    const compras = await Compra.find().populate("user").populate("producto");
+    const compras = await Compra.find({ sede: req.user.sede })
+      .populate("user")
+      .populate("producto");
     res.json(compras);
   } catch (error) {
-    res.status(500).json({
-      message: "Error al obtener las compras",
-      error: error.message,
-    });
+    console.error("Error getAllCompras:", error.message);
+    res.status(500).json({ message: "Error al obtener las compras" });
   }
 };
 
 export const createCompra = async (req, res) => {
   try {
-    const resultado = await crearCompras(req.body, req.user.id);
+    const resultado = await crearCompras(req.body, req.user.id, req.user.sede);
     res.status(201).json(resultado);
   } catch (error) {
-    res.status(500).json({
-      message: "Error al crear la compra",
-      error: error.message,
-    });
+    console.error("Error createCompra:", error.message);
+    res.status(400).json({ message: error.message });
   }
 };
 
 export const updateCompra = async (req, res) => {
   try {
-    const compraActualizada = await actualizarCompraIndividual(
-      req.params.id,
-      req.body
-    );
-    res.json({
-      message: "Compra actualizada correctamente",
-      compra: compraActualizada,
-    });
+    const compraActualizada = await actualizarCompraIndividual(req.params.id, req.body);
+    res.json({ message: "Compra actualizada correctamente", compra: compraActualizada });
   } catch (error) {
-    res.status(500).json({
-      message: "Error al actualizar la compra",
-      error: error.message,
-    });
+    console.error("Error updateCompra:", error.message);
+    res.status(400).json({ message: error.message });
   }
 };
 
 export const updateLoteCompra = async (req, res) => {
   try {
     const { ids, nuevasCompras } = req.body;
-    const resultado = await actualizarLoteCompras(
-      ids,
-      nuevasCompras,
-      req.user.id
-    );
+    const resultado = await actualizarLoteCompras(ids, nuevasCompras, req.user.id, req.user.sede);
     res.json(resultado);
   } catch (error) {
-    res.status(500).json({
-      message: "Error al actualizar el lote de compras",
-      error: error.message,
-    });
+    console.error("Error updateLoteCompra:", error.message);
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -84,22 +67,18 @@ export const deleteCompra = async (req, res) => {
     const resultado = await eliminarCompraPorId(req.params.id);
     res.status(200).json(resultado);
   } catch (error) {
-    res.status(500).json({
-      message: "Error al eliminar la compra",
-      error: error.message,
-    });
+    console.error("Error deleteCompra:", error.message);
+    res.status(400).json({ message: error.message });
   }
 };
 
 export const deleteLoteCompras = async (req, res) => {
   try {
-    const data = await eliminarLoteComprasPorId(req.params.id_lote);
+    const data = await eliminarLoteComprasPorId(req.params.id_lote, req.user.sede);
     res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({
-      message: "Error al eliminar el lote de compras",
-      error: error.message,
-    });
+    console.error("Error deleteLoteCompras:", error.message);
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -108,12 +87,10 @@ export const getCompra = async (req, res) => {
     const compra = await Compra.findById(req.params.id)
       .populate("user")
       .populate("producto");
-    if (!compra)
-      return res.status(404).json({ message: "Compra no registrada" });
+    if (!compra) return res.status(404).json({ message: "Compra no registrada" });
     res.json(compra);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error al obtener la compra", error: error.message });
+    console.error("Error getCompra:", error.message);
+    res.status(500).json({ message: "Error al obtener la compra" });
   }
 };
