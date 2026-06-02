@@ -35,16 +35,19 @@ function Inventario() {
 
     const refreshPagina = async () => {
       try {
-        await Promise.all([
+        const tareas = [
           getAllVentas(),
           getAllProducts(),
           getCortesias(),
-          getUsers(),
           getAllRelevos(),
           getAllCompras(),
           getAllSalidas(),
           getReposiciones(),
-        ]);
+        ];
+        if (user?.role === "admin" || user?.role === "superadmin") {
+          tareas.push(getUsers());
+        }
+        await Promise.all(tareas);
       } catch (error) {
         console.error("Error al cargar los datos:", error);
       }
@@ -87,7 +90,7 @@ function Inventario() {
           ) : null
         }
         opt3={
-          canAccess("admin", "user", "superadmin") ? (
+          canAccess("admin", "user", "superadmin", "recepcionista") ? (
             <OptInventarioRecepcion
               onClick={() => setVistaActiva("Recepcion")}
             />

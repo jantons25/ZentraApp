@@ -46,17 +46,20 @@ function VentasPage() {
 
   const refreshPagina = async () => {
     try {
-      await Promise.all([
+      const tareas = [
         getAllVentas(),
         getAllProducts(),
         getCortesias(),
-        getUsers(),
         getAllRelevos(),
         getAllCompras(),
         getAllSalidas(),
         getReposiciones(),
-        getVeladas()
-      ]);
+        getVeladas(),
+      ];
+      if (user?.role === "admin" || user?.role === "superadmin") {
+        tareas.push(getUsers());
+      }
+      await Promise.all(tareas);
     } catch (error) {
       console.error("Error al cargar los datos:", error);
     }

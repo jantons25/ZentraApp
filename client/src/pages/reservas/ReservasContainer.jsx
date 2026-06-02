@@ -30,12 +30,15 @@ function ReservasPage() {
   };
   const refreshPagina = async () => {
     try {
-      await Promise.all([
+      const tareas = [
         getReservas(),
         getClientes(),
         getEspacios(),
-        getUsers(),
-      ]);
+      ];
+      if (user?.role === "admin" || user?.role === "superadmin") {
+        tareas.push(getUsers());
+      }
+      await Promise.all(tareas);
     } catch (error) {
       console.error("Error al cargar los datos:", error);
     }
