@@ -6,7 +6,7 @@ export const crearCompras = async (comprasInput, userId, sede) => {
   const compras = Array.isArray(comprasInput) ? comprasInput : [comprasInput];
   if (compras.length === 0) throw new Error("No se proporcionaron compras válidas.");
 
-  const nuevoIdLote = await generarIdLote("compra");
+  const nuevoIdLote = await generarIdLote("compra", null, (id) => Compra.exists({ id_lote: id }));
   const comprasGuardadas = [];
 
   for (const compra of compras) {

@@ -7,7 +7,7 @@ export const crearVentas = async (ventasInput, userId, sede) => {
   const ventas = Array.isArray(ventasInput) ? ventasInput : [ventasInput];
   if (ventas.length === 0) throw new Error("No se proporcionaron ventas válidas.");
 
-  const nuevoIdLote = await generarIdLote("venta");
+  const nuevoIdLote = await generarIdLote("venta", null, (id) => Venta.exists({ id_lote: id }));
   const ventasGuardadas = [];
 
   for (const venta of ventas) {

@@ -4,17 +4,30 @@ import mongoose from "mongoose";
  * Genera un id_lote secuencial atómico.
  * Usa un documento de secuencia en la colección "counters".
  */
-export async function generarIdLote(tipoEntidad, session = null) {
+export async function generarIdLote(tipoEntidad, session = null, existsCheck = null) {
   const Counter = mongoose.connection.collection("counters");
   const opts = session ? { session } : {};
 
-  const result = await Counter.findOneAndUpdate(
+  let result = await Counter.findOneAndUpdate(
     { _id: `lote_${tipoEntidad}` },
     { $inc: { seq: 1 } },
     { upsert: true, returnDocument: "after", ...opts }
   );
 
-  return String(result.seq).padStart(3, "0");
+  let idLote = String(result.seq).padStart(3, "0");
+
+  if (existsCheck) {
+    while (await existsCheck(idLote)) {
+      result = await Counter.findOneAndUpdate(
+        { _id: `lote_${tipoEntidad}` },
+        { $inc: { seq: 1 } },
+        { returnDocument: "after", ...opts }
+      );
+      idLote = String(result.seq).padStart(3, "0");
+    }
+  }
+
+  return idLote;
 }
 
 /**

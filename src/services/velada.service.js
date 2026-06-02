@@ -7,7 +7,7 @@ export const crearVelada = async (veladaInput, userId, sede) => {
   const veladas = Array.isArray(veladaInput) ? veladaInput : [veladaInput];
   if (veladas.length === 0) throw new Error("No se proporcionó información de velada");
 
-  const nuevoIdLote = await generarIdLote("velada");
+  const nuevoIdLote = await generarIdLote("velada", null, (id) => Velada.exists({ id_lote: id }));
   const veladasGuardadas = [];
 
   for (const veladaData of veladas) {

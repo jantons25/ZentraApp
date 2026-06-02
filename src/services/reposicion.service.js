@@ -7,7 +7,7 @@ export const crearReposiciones = async (reposicionesInput, userId, sede) => {
   const reposiciones = Array.isArray(reposicionesInput) ? reposicionesInput : [reposicionesInput];
   if (reposiciones.length === 0) throw new Error("No se proporcionaron reposiciones válidas.");
 
-  const nuevoIdLote = await generarIdLote("reposicion");
+  const nuevoIdLote = await generarIdLote("reposicion", null, (id) => Reposicion.exists({ id_lote: id }));
   const reposicionesGuardadas = [];
 
   for (const reposicion of reposiciones) {

@@ -7,7 +7,7 @@ export const crearCortesias = async (cortesiasInput, userId, sede) => {
   const cortesias = Array.isArray(cortesiasInput) ? cortesiasInput : [cortesiasInput];
   if (cortesias.length === 0) throw new Error("No se proporcionaron cortesías válidas.");
 
-  const nuevoIdLote = await generarIdLote("cortesia");
+  const nuevoIdLote = await generarIdLote("cortesia", null, (id) => Cortesia.exists({ id_lote: id }));
   const cortesiasGuardadas = [];
 
   for (const cortesia of cortesias) {

@@ -23,7 +23,7 @@ export const crearSalidas = async (salidasInput, userId, sede) => {
   const salidas = Array.isArray(salidasInput) ? salidasInput : [salidasInput];
   if (salidas.length === 0) throw new Error("No se proporcionaron salidas válidas.");
 
-  const nuevoIdLote = await generarIdLote("salida");
+  const nuevoIdLote = await generarIdLote("salida", null, (id) => Salidas.exists({ id_lote: id }));
   const salidasGuardadas = [];
   const detalles_fifo = [];
 
