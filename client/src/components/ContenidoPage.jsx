@@ -11,6 +11,7 @@ import ModalBigVarios from "./ModalBigVarios.jsx";
 import { useState, useEffect } from "react";
 import { modalRegistry } from "../components/modales/modalRegistry.js";
 import ReposicionList from "./ReposicionList.jsx";
+import NovedadesSection from "./NovedadesSection.jsx";
 
 function ContenidoPage({
   user,
@@ -33,7 +34,8 @@ function ContenidoPage({
   clientes,
   detalleReservas,
   espacios,
-  veladas
+  veladas,
+  novedades
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const VISTAS = {
@@ -49,6 +51,7 @@ function ContenidoPage({
     Reservas: ["Reservas", "AgregarReserva", "ListaClientes", "ListaEspacios"],
     Clientes: ["Clientes", "AgregarCliente"],
     Espacios: ["Espacios", "AgregarEspacio"],
+    Operaciones: ["Novedades", "Novedades Lista", "Novedades Kanban"],
   };
   const getSeccionFromVista = (v) => {
     for (const [seccion, vistas] of Object.entries(VISTAS)) {
@@ -68,7 +71,8 @@ function ContenidoPage({
     Administracion: "Administracion",
     Reservas: "Reservas",
     Clientes: "Clientes",
-    Espacios: "Espacios"
+    Espacios: "Espacios",
+    Operaciones: "Novedades"
   };
   useEffect(() => {
     const seccion = getSeccionFromVista(vistaActiva);
@@ -77,8 +81,9 @@ function ContenidoPage({
     const isSubvista = vistaActiva !== (BASE_VISTA[seccion] ?? "Ventas"); // no es la base
     const hasModal = Boolean(modalRegistry[vistaActiva]); // hay componente en el registry
 
-    // 👉 Abrir modal automáticamente si estoy en subvista válida de la página actual
-    if (isSamePage && isSubvista && hasModal) {
+    // Abrir modal automáticamente si estoy en subvista válida de la página actual.
+    // Operaciones queda excluido: sus tres vistas son peers, no subvistas con formulario.
+    if (isSamePage && isSubvista && hasModal && seccion !== "Operaciones") {
       setIsModalOpen(true);
     }
 
@@ -100,7 +105,8 @@ function ContenidoPage({
       Administracion: ["Administracion"],
       Reservas: ["Reservas"],
       Clientes: ["Clientes"],
-      Espacios: ["Espacios"]
+      Espacios: ["Espacios"],
+      Operaciones: ["Novedades", "Novedades Lista", "Novedades Kanban"]
     };
     if (botonFiltro && (vistasConFiltro[seccion] ?? []).includes(vistaActiva)) {
       setIsModalOpen(true);
@@ -113,7 +119,10 @@ function ContenidoPage({
   const handleCloseModal = () => {
     setIsModalOpen(false);
     const seccion = getSeccionFromVista(vistaActiva);
-    setVistaActiva(BASE_VISTA[seccion] ?? "Ventas");
+    // En Operaciones las tres vistas son peers: cerrar el modal no cambia la vista activa.
+    if (seccion !== "Operaciones") {
+      setVistaActiva(BASE_VISTA[seccion] ?? "Ventas");
+    }
   };
 
   const getModalComponent = () => {
@@ -136,6 +145,7 @@ function ContenidoPage({
       clientes,
       detalleReservas,
       espacios,
+      novedades,
     });
 
     return <Component {...props} />;
@@ -235,6 +245,15 @@ function ContenidoPage({
           reposiciones={reposiciones}
           products={products}
           closeModal={handleCloseModal}
+          refreshPagina={refreshPagina}
+        />
+      )}
+      {pagina === "Operaciones" && (
+        <NovedadesSection
+          vistaActiva={vistaActiva}
+          setVistaActiva={setVistaActiva}
+          user={user}
+          novedades={novedades}
           refreshPagina={refreshPagina}
         />
       )}

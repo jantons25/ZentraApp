@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useReposicion } from "../context/ReposicionContext.jsx";
 import { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
 
 function ReposicionesVariasFormPage({
   closeModal,
@@ -15,12 +16,19 @@ function ReposicionesVariasFormPage({
     reset,
   } = useForm();
 
-  const { createReposicion, updateLoteReposicion } = useReposicion();
+  const { createReposicion, updateLoteReposicion, updateReposicion } =
+    useReposicion();
   const [reposicionesTemporales, setReposicionesTemporales] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [productosSinStockRecepcion, setProductosSinStockRecepcion] = useState(
     []
   );
+  // Edición individual de filas
+  const [editIndex, setEditIndex] = useState(null);
+  const [editValues, setEditValues] = useState({ cantidad: "" });
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  // Cantidades persistidas al abrir el modal (para validar stock al editar)
+  const [cantidadesIniciales, setCantidadesIniciales] = useState({});
 
   const totalItems = reposicionesTemporales.reduce(
     (acc, reposicion) => acc + (Number(reposicion.cantidad) || 0),
@@ -122,8 +130,91 @@ function ReposicionesVariasFormPage({
         ),
       }));
       setReposicionesTemporales(reposicionesConProductoObj);
+      const iniciales = {};
+      reposicion.reposiciones.forEach((r) => {
+        iniciales[r._id] = r.cantidad;
+      });
+      setCantidadesIniciales(iniciales);
+      setEditIndex(null);
     }
   }, [reposicion, products]);
+
+  const iniciarEdicion = (index) => {
+    if (editIndex !== null) return; // solo una fila en edición a la vez
+    const fila = reposicionesTemporales[index];
+    setEditIndex(index);
+    setEditValues({ cantidad: String(fila.cantidad) });
+  };
+
+  const cancelarEdicion = () => {
+    setEditIndex(null);
+    setEditValues({ cantidad: "" });
+  };
+
+  const guardarEdicion = async (index) => {
+    if (isSavingEdit) return;
+
+    const cantidad = parseInt(editValues.cantidad, 10);
+
+    if (isNaN(cantidad) || cantidad <= 0) {
+      toast.error("La cantidad debe ser un número entero mayor a cero");
+      return;
+    }
+
+    const fila = reposicionesTemporales[index];
+    // El stock de recepción ya descuenta la cantidad original persistida,
+    // por eso se suma de vuelta para conocer el disponible real al editar
+    const disponible =
+      calcularStockRecepcion(fila.producto) +
+      (fila._id ? cantidadesIniciales[fila._id] ?? 0 : 0);
+
+    if (cantidad > disponible) {
+      toast.error(
+        `Stock insuficiente en recepción para ${
+          fila.producto?.nombre || "el producto"
+        }. Disponible: ${disponible}`
+      );
+      return;
+    }
+
+    setIsSavingEdit(true);
+    try {
+      if (fila._id) {
+        const res = await updateReposicion(fila._id, { cantidad });
+        if (!res) return; // el contexto ya mostró el error
+      } else {
+        toast.success("Producto actualizado en la lista");
+      }
+
+      const delta = cantidad - fila.cantidad;
+      const productoId = fila.producto?._id;
+
+      setReposicionesTemporales((prev) =>
+        prev.map((r, i) => {
+          const nuevaCantidad = i === index ? cantidad : r.cantidad;
+          if (r.producto?._id === productoId) {
+            return {
+              ...r,
+              cantidad: nuevaCantidad,
+              producto: {
+                ...r.producto,
+                cantidad_repuesta: (r.producto.cantidad_repuesta || 0) + delta,
+              },
+            };
+          }
+          return i === index ? { ...r, cantidad } : r;
+        })
+      );
+
+      if (fila._id) {
+        setCantidadesIniciales((prev) => ({ ...prev, [fila._id]: cantidad }));
+      }
+
+      cancelarEdicion();
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
 
   return (
     <div className="bg-white w-full p-5 rounded-md flex flex-row flex-wrap gap-4">
@@ -313,55 +404,111 @@ function ReposicionesVariasFormPage({
               </tr>
             </thead>
             <tbody>
-              {reposicionesTemporales.map((reposicion, index) => (
-                <tr
-                  key={index}
-                  className={`border-b transition duration-150 ${
-                    reposicion.cantidad >
-                    reposicion.producto.salidas -
-                      (reposicion.producto.cantidad_vendida +
-                        reposicion.producto.cantidad_repuesta +
-                        reposicion.producto.cantidad_cortesia)
-                      ? "bg-red-100"
-                      : "bg-white"
-                  }`}
-                >
-                  <td className="px-6 py-4 text-center">
-                    {reposicion.producto?.nombre || "Sin nombre"}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    {reposicion.cantidad}
-                  </td>
-                  <td className="px-6 py-4 text-center text-green-600 font-bold">
-                    {reposicion.producto.salidas -
-                      (reposicion.producto.cantidad_vendida +
-                        reposicion.producto.cantidad_repuesta +
-                        reposicion.producto.cantidad_cortesia)}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    {reposicion.habitacion}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    {reposicion.responsable}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    {reposicion.observacion || "-"}
-                  </td>
-                  <td className="px-6 py-4 flex justify-center">
-                    <button
-                      onClick={() => {
-                        const nuevas = reposicionesTemporales.filter(
-                          (_, i) => i !== index
-                        );
-                        setReposicionesTemporales(nuevas);
-                      }}
-                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-xs cursor-pointer"
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {reposicionesTemporales.map((reposicion, index) => {
+                const enEdicion = editIndex === index;
+                return (
+                  <tr
+                    key={index}
+                    className={`border-b transition duration-150 ${
+                      reposicion.cantidad >
+                      reposicion.producto.salidas -
+                        (reposicion.producto.cantidad_vendida +
+                          reposicion.producto.cantidad_repuesta +
+                          reposicion.producto.cantidad_cortesia)
+                        ? "bg-red-100"
+                        : "bg-white"
+                    }`}
+                  >
+                    <td className="px-6 py-4 text-center">
+                      {reposicion.producto?.nombre || "Sin nombre"}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {enEdicion ? (
+                        <input
+                          type="number"
+                          min="1"
+                          value={editValues.cantidad}
+                          onChange={(e) =>
+                            setEditValues({ cantidad: e.target.value })
+                          }
+                          className="w-20 bg-gray-200 px-2 py-1 rounded-md text-center"
+                        />
+                      ) : (
+                        reposicion.cantidad
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center text-green-600 font-bold">
+                      {reposicion.producto.salidas -
+                        (reposicion.producto.cantidad_vendida +
+                          reposicion.producto.cantidad_repuesta +
+                          reposicion.producto.cantidad_cortesia)}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {reposicion.habitacion}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {reposicion.responsable}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {reposicion.observacion || "-"}
+                    </td>
+                    <td className="px-6 py-4 flex gap-2 justify-center">
+                      {enEdicion ? (
+                        <>
+                          <button
+                            onClick={() => guardarEdicion(index)}
+                            disabled={isSavingEdit}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              isSavingEdit
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-green-600 hover:bg-green-700 cursor-pointer"
+                            }`}
+                          >
+                            {isSavingEdit ? "Guardando..." : "Guardar"}
+                          </button>
+                          <button
+                            onClick={cancelarEdicion}
+                            disabled={isSavingEdit}
+                            className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 text-xs cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => iniciarEdicion(index)}
+                            disabled={editIndex !== null}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              editIndex !== null
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-blue-500 hover:bg-blue-600 cursor-pointer"
+                            }`}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => {
+                              const nuevas = reposicionesTemporales.filter(
+                                (_, i) => i !== index
+                              );
+                              setReposicionesTemporales(nuevas);
+                            }}
+                            disabled={editIndex !== null}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              editIndex !== null
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-red-500 hover:bg-red-600 cursor-pointer"
+                            }`}
+                          >
+                            Eliminar
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
               {reposicionesTemporales.length === 0 && (
                 <tr>
                   <td
@@ -398,10 +545,10 @@ function ReposicionesVariasFormPage({
             <button
               type="button"
               onClick={handleGuardarReposiciones}
-              disabled={isSubmitting}
+              disabled={isSubmitting || editIndex !== null}
               className={`px-4 py-2 rounded-md my-2 text-zinc-800
         ${
-          isSubmitting
+          isSubmitting || editIndex !== null
             ? "bg-gray-400 cursor-not-allowed opacity-60"
             : "bg-[#b9bc31] hover:bg-yellow-300 hover:text-black"
         }`}

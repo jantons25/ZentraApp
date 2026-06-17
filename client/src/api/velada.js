@@ -7,3 +7,5 @@ export const deleteLoteVeladasRequest = (id_lote) =>
   axios.delete(`/veladas/lote/${id_lote}`);
 export const updateLoteVeladasRequest = ({ ids, nuevasVeladas }) =>
   axios.put("/veladas/lote", { ids, nuevasVeladas });
+export const updateVeladaRequest = (id, velada) =>
+  axios.put(`/veladas/${id}`, velada);

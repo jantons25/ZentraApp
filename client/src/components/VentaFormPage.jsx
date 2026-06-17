@@ -110,7 +110,7 @@ function CompraFormPage({ closeModal, refreshPagina, venta, products }) {
             {...register("habitacion", { required: true })}
             className="w-full bg-gray-200 px-4 py-2 rounded-md my-2"
           >
-            <option value="">Seleccione Oficina</option>
+            <option value="">Seleccione Habitación</option>
             <option value="201">201</option>
             <option value="202">202</option>
             <option value="203">203</option>

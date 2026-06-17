@@ -2,6 +2,7 @@
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useCortesia } from "../context/CortesiaContext.jsx";
+import { toast } from "react-hot-toast";
 
 function CortesiasVariasFormPage({
   closeModal,
@@ -16,12 +17,18 @@ function CortesiasVariasFormPage({
     reset,
   } = useForm();
 
-  const { createCortesia, updateLoteCortesia } = useCortesia();
+  const { createCortesia, updateLoteCortesia, updateCortesia } = useCortesia();
   const [cortesiasTemporales, setCortesiasTemporales] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [productosSinStockRecepcion, setProductosSinStockRecepcion] = useState(
     []
   );
+  // Edición individual de filas
+  const [editIndex, setEditIndex] = useState(null);
+  const [editValues, setEditValues] = useState({ cantidad: "" });
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  // Cantidades persistidas al abrir el modal (para validar stock al editar)
+  const [cantidadesIniciales, setCantidadesIniciales] = useState({});
 
   const totalItems = cortesiasTemporales.reduce(
     (acc, c) => acc + (Number(c.cantidad) || 0),
@@ -122,8 +129,91 @@ function CortesiasVariasFormPage({
         ),
       }));
       setCortesiasTemporales(cortesiasConProductoObj);
+      const iniciales = {};
+      cortesia.cortesias.forEach((c) => {
+        iniciales[c._id] = c.cantidad;
+      });
+      setCantidadesIniciales(iniciales);
+      setEditIndex(null);
     }
   }, [cortesia, products]);
+
+  const iniciarEdicion = (index) => {
+    if (editIndex !== null) return; // solo una fila en edición a la vez
+    const fila = cortesiasTemporales[index];
+    setEditIndex(index);
+    setEditValues({ cantidad: String(fila.cantidad) });
+  };
+
+  const cancelarEdicion = () => {
+    setEditIndex(null);
+    setEditValues({ cantidad: "" });
+  };
+
+  const guardarEdicion = async (index) => {
+    if (isSavingEdit) return;
+
+    const cantidad = parseInt(editValues.cantidad, 10);
+
+    if (isNaN(cantidad) || cantidad <= 0) {
+      toast.error("La cantidad debe ser un número entero mayor a cero");
+      return;
+    }
+
+    const fila = cortesiasTemporales[index];
+    // El stock de recepción ya descuenta la cantidad original persistida,
+    // por eso se suma de vuelta para conocer el disponible real al editar
+    const disponible =
+      calcularStockRecepcion(fila.producto) +
+      (fila._id ? cantidadesIniciales[fila._id] ?? 0 : 0);
+
+    if (cantidad > disponible) {
+      toast.error(
+        `Stock insuficiente en recepción para ${
+          fila.producto?.nombre || "el producto"
+        }. Disponible: ${disponible}`
+      );
+      return;
+    }
+
+    setIsSavingEdit(true);
+    try {
+      if (fila._id) {
+        const res = await updateCortesia(fila._id, { cantidad });
+        if (!res) return; // el contexto ya mostró el error
+      } else {
+        toast.success("Producto actualizado en la lista");
+      }
+
+      const delta = cantidad - fila.cantidad;
+      const productoId = fila.producto?._id;
+
+      setCortesiasTemporales((prev) =>
+        prev.map((c, i) => {
+          const nuevaCantidad = i === index ? cantidad : c.cantidad;
+          if (c.producto?._id === productoId) {
+            return {
+              ...c,
+              cantidad: nuevaCantidad,
+              producto: {
+                ...c.producto,
+                cantidad_cortesia: (c.producto.cantidad_cortesia || 0) + delta,
+              },
+            };
+          }
+          return i === index ? { ...c, cantidad } : c;
+        })
+      );
+
+      if (fila._id) {
+        setCantidadesIniciales((prev) => ({ ...prev, [fila._id]: cantidad }));
+      }
+
+      cancelarEdicion();
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
 
   return (
     <div className="bg-white w-full p-5 rounded-md flex flex-row flex-wrap gap-4">
@@ -278,48 +368,107 @@ function CortesiasVariasFormPage({
               </tr>
             </thead>
             <tbody>
-              {cortesiasTemporales.map((c, index) => (
-                <tr
-                  key={index}
-                  className={`border-b transition duration-150 ${
-                    c.cantidad >
-                    c.producto.salidas -
-                      (c.producto.cantidad_vendida +
-                        c.producto.cantidad_repuesta +
-                        c.producto.cantidad_cortesia)
-                      ? "bg-red-100"
-                      : "bg-white"
-                  }`}
-                >
-                  <td className="px-6 py-4 text-center">
-                    {c.producto?.nombre || "Sin nombre"}
-                  </td>
-                  <td className="px-6 py-4 text-center">{c.cantidad}</td>
-                  <td className="px-6 py-4 text-center text-green-600 font-bold">
-                    {c.producto.salidas -
-                      (c.producto.cantidad_vendida +
-                        c.producto.cantidad_repuesta +
-                        c.producto.cantidad_cortesia)}
-                  </td>
-                  <td className="px-6 py-4 text-center">{c.responsable}</td>
-                  <td className="px-6 py-4 text-center">
-                    {c.observacion || "-"}
-                  </td>
-                  <td className="px-6 py-4 flex justify-center">
-                    <button
-                      onClick={() => {
-                        const nuevas = cortesiasTemporales.filter(
-                          (_, i) => i !== index
-                        );
-                        setCortesiasTemporales(nuevas);
-                      }}
-                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-xs cursor-pointer"
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {cortesiasTemporales.map((c, index) => {
+                console.log(c)
+                const enEdicion = editIndex === index;
+                return (
+                  <tr
+                    key={index}
+                    className={`border-b transition duration-150 ${
+                      c.cantidad >
+                      c.producto.salidas -
+                        (c.producto.cantidad_vendida +
+                          c.producto.cantidad_repuesta +
+                          c.producto.cantidad_cortesia)
+                        ? "bg-red-100"
+                        : "bg-white"
+                    }`}
+                  >
+                    <td className="px-6 py-4 text-center">
+                      {c.producto?.nombre || "Sin nombre"}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {enEdicion ? (
+                        <input
+                          type="number"
+                          min="1"
+                          value={editValues.cantidad}
+                          onChange={(e) =>
+                            setEditValues({ cantidad: e.target.value })
+                          }
+                          className="w-20 bg-gray-200 px-2 py-1 rounded-md text-center"
+                        />
+                      ) : (
+                        c.cantidad
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center text-green-600 font-bold">
+                      {c.producto.salidas -
+                        (c.producto.cantidad_vendida +
+                          c.producto.cantidad_repuesta +
+                          c.producto.cantidad_cortesia)}
+                    </td>
+                    <td className="px-6 py-4 text-center">{c.responsable}</td>
+                    <td className="px-6 py-4 text-center">
+                      {c.observacion || "-"}
+                    </td>
+                    <td className="px-6 py-4 flex gap-2 justify-center">
+                      {enEdicion ? (
+                        <>
+                          <button
+                            onClick={() => guardarEdicion(index)}
+                            disabled={isSavingEdit}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              isSavingEdit
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-green-600 hover:bg-green-700 cursor-pointer"
+                            }`}
+                          >
+                            {isSavingEdit ? "Guardando..." : "Guardar"}
+                          </button>
+                          <button
+                            onClick={cancelarEdicion}
+                            disabled={isSavingEdit}
+                            className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 text-xs cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => iniciarEdicion(index)}
+                            disabled={editIndex !== null}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              editIndex !== null
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-blue-500 hover:bg-blue-600 cursor-pointer"
+                            }`}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => {
+                              const nuevas = cortesiasTemporales.filter(
+                                (_, i) => i !== index
+                              );
+                              setCortesiasTemporales(nuevas);
+                            }}
+                            disabled={editIndex !== null}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              editIndex !== null
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-red-500 hover:bg-red-600 cursor-pointer"
+                            }`}
+                          >
+                            Eliminar
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
               {cortesiasTemporales.length === 0 && (
                 <tr>
                   <td
@@ -357,10 +506,10 @@ function CortesiasVariasFormPage({
             <button
               type="button"
               onClick={handleGuardarCortesias}
-              disabled={isSubmitting}
+              disabled={isSubmitting || editIndex !== null}
               className={`px-4 py-2 rounded-md my-2 text-zinc-800
         ${
-          isSubmitting
+          isSubmitting || editIndex !== null
             ? "bg-gray-400 cursor-not-allowed opacity-60"
             : "bg-[#b9bc31] hover:bg-yellow-300 hover:text-black"
         }`}

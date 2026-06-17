@@ -6,6 +6,7 @@ import {
   deleteVeladaRequest,
   deleteLoteVeladasRequest,
   updateLoteVeladasRequest,
+  updateVeladaRequest,
 } from "../api/velada.js";
 
 const VeladaContext = createContext();
@@ -72,6 +73,19 @@ export function VeladaProvider({ children }) {
     }
   };
 
+  const updateVelada = async (id, data) => {
+    try {
+      const res = await updateVeladaRequest(id, data);
+      setVeladas((prev) =>
+        prev.map((v) => (v._id === id ? res.data.velada : v))
+      );
+      toast.success("Velada actualizada correctamente");
+      return res.data;
+    } catch (error) {
+      toast.error(`Error al actualizar la velada: ${getErrorMsg(error)}`);
+    }
+  };
+
   const updateLoteVelada = async ({ ids, nuevasVeladas }) => {
     try {
       const res = await updateLoteVeladasRequest({ ids, nuevasVeladas });
@@ -99,6 +113,7 @@ export function VeladaProvider({ children }) {
         createVelada,
         deleteVelada,
         deleteLoteVeladas,
+        updateVelada,
         updateLoteVelada,
       }}
     >

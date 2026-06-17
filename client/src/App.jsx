@@ -26,6 +26,8 @@ import { ClienteProvider } from "./context/ClienteContext.jsx";
 import { DetalleReservaProvider } from "./context/DetalleReservaContext.jsx";
 import { EspacioProvider } from "./context/EspacioContext.jsx";
 import { VeladaProvider } from "./context/VeladaContext.jsx";
+import { NovedadProvider } from "./context/NovedadContext.jsx";
+import OperacionesPage from "./pages/Operaciones.jsx"
 import ReservasPage from "./pages/ReservasPage.jsx";
 import Dashboard from "./pages/Dashboard";
 
@@ -45,6 +47,7 @@ function App() {
                           <CortesiaProvider>
                             <RelevoProvider>
                               <ProductProvider>
+                                <NovedadProvider>
                                 <BrowserRouter>
                                   <Routes>
                                     <Route
@@ -81,6 +84,10 @@ function App() {
                                         element={<VentasPage />}
                                       />
                                       <Route
+                                        path="/operaciones"
+                                        element={<OperacionesPage />}
+                                      />
+                                      <Route
                                         path="/salidas"
                                         element={<SalidasPage />}
                                       />
@@ -107,6 +114,7 @@ function App() {
                                     </Route>
                                   </Routes>
                                 </BrowserRouter>
+                                </NovedadProvider>
                               </ProductProvider>
                             </RelevoProvider>
                           </CortesiaProvider>

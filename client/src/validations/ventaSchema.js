@@ -14,6 +14,6 @@ export const ventaItemSchema = Yup.object().shape({
   pago_registrado: Yup.string().required("Seleccione si está pagado"),
   habitacion: Yup.string().when("pago_registrado", {
     is: "No",
-    then: (schema) => schema.required("Seleccione una oficina")
+    then: (schema) => schema.required("Seleccione una habitación")
   })
 });

@@ -4,6 +4,7 @@ import {
   getReposicionesRequest,
   createReposicionRequest,
   updateReposicionLoteRequest,
+  updateReposicionRequest,
   deleteReposicionRequest,
   deleteLoteReposicionesRequest,
 } from "../api/reposiciones.js";
@@ -76,6 +77,19 @@ export function ReposicionProvider({ children }) {
     }
   };
 
+  const updateReposicion = async (id, data) => {
+    try {
+      const res = await updateReposicionRequest(id, data);
+      setReposiciones((prev) =>
+        prev.map((r) => (r._id === id ? res.data.reposicion : r))
+      );
+      toast.success("Reposición actualizada correctamente");
+      return res.data;
+    } catch (error) {
+      toast.error(`Error al actualizar la reposición: ${getErrorMsg(error)}`);
+    }
+  };
+
   const updateLoteReposicion = async ({ ids, reposiciones }) => {
     try {
       const res = await updateReposicionLoteRequest({ ids, reposiciones });
@@ -101,6 +115,7 @@ export function ReposicionProvider({ children }) {
         getReposiciones,
         deleteReposicion,
         deleteLoteReposiciones,
+        updateReposicion,
         updateLoteReposicion,
       }}
     >

@@ -52,7 +52,7 @@ function ModalFiltrar({ onFilter, onReset, closeModal, refreshPagina, products }
       <label>Cantidad</label>
       <input type="number" />
 
-      <label>Oficina</label>
+      <label>Habitaciones</label>
       <select value={oficina} onChange={(e) => setOficina(e.target.value)}>
         <option>Todas</option>
         <option>Chiclayo</option>

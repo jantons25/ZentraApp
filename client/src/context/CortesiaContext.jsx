@@ -4,6 +4,7 @@ import {
   getCortesiasRequest,
   createCortesiaRequest,
   updateCortesiaLoteRequest,
+  updateCortesiaRequest,
   deleteCortesiaRequest,
   deleteLoteCortesiasRequest,
 } from "../api/cortesia.js";
@@ -72,6 +73,19 @@ export function CortesiaProvider({ children }) {
     }
   };
 
+  const updateCortesia = async (id, data) => {
+    try {
+      const res = await updateCortesiaRequest(id, data);
+      setCortesias((prev) =>
+        prev.map((c) => (c._id === id ? res.data.cortesia : c))
+      );
+      toast.success("Cortesía actualizada correctamente");
+      return res.data;
+    } catch (error) {
+      toast.error(`Error al actualizar la cortesía: ${getErrorMsg(error)}`);
+    }
+  };
+
   const updateLoteCortesia = async ({ ids, nuevasCortesias }) => {
     try {
       const res = await updateCortesiaLoteRequest({ ids, nuevasCortesias });
@@ -99,6 +113,7 @@ export function CortesiaProvider({ children }) {
         createCortesia,
         deleteCortesia,
         deleteLoteCortesias,
+        updateCortesia,
         updateLoteCortesia,
       }}
     >

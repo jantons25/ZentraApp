@@ -10,6 +10,15 @@ import Trabajando from "../Trabajando";
 import WizardComponent from "../WizardComponent.jsx";
 import EspaciosForm from "../EspaciosForm.jsx";
 import ClientesForm from "../ClienteForm.jsx";
+import NovedadesFormPage from "../NovedadesFormPage.jsx";
+
+const novedadesModal = {
+  component: NovedadesFormPage,
+  props: (ctx) => ({
+    closeModal: ctx.closeModal,
+    refreshPagina: ctx.refreshPagina,
+  }),
+};
 
 export const modalRegistry = {
   Ventas: {
@@ -110,4 +119,8 @@ export const modalRegistry = {
     component: Trabajando,
     props: () => ({}), // No requiere props
   },
+  // El formulario de Novedades se abre desde cualquiera de sus tres vistas
+  Novedades: novedadesModal,
+  "Novedades Lista": novedadesModal,
+  "Novedades Kanban": novedadesModal,
 };

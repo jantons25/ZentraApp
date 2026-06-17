@@ -22,6 +22,8 @@ function ModalBig({ isOpen, closeModal, component, vistaActiva }) {
               ? "Nueva Salida"
               : vistaActiva === "Productos"
               ? "Nuevo Producto"
+              : vistaActiva === "ActualizarNovedad"
+              ? "Actualizar Novedad"
               : vistaActiva}
           </h2>
           <button className="bg-red-500 text-white rounded hover:bg-red-600 cursor-pointer">

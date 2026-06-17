@@ -109,6 +109,11 @@ export function SalidaProvider({ children }) {
   const updateSalida = async (id, data) => {
     try {
       const res = await updateSalidaRequest(id, data);
+      if (res.data?.salida) {
+        setSalidas((prev) =>
+          prev.map((s) => (s._id === id ? res.data.salida : s))
+        );
+      }
       toast.success("Salida actualizada correctamente");
       return res.data;
     } catch (error) {

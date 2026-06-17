@@ -1,4 +1,5 @@
 import VentaIcon from "../assets/carro.png";
+import OperacionesIcon from "../assets/configuraciones.png"
 import InventarioIcon from "../assets/lista.png";
 import SalirIcon from "../assets/cerrar-sesion.png";
 import AdminIcon from "../assets/gerente.png";
@@ -19,8 +20,7 @@ function MenuLateral({ user, pagina }) {
     setMostrarModalLogout(false);
   };
 
-  const getItemClass = (nombrePagina) =>
-    `sidebar__item ${pagina === nombrePagina ? "sidebar__item--active" : ""}`;
+  const getItemClass = (nombrePagina) => `sidebar__item ${pagina === nombrePagina ? "sidebar__item--active" : ""}`;
 
   return (
     <aside className="sidebar">
@@ -28,7 +28,9 @@ function MenuLateral({ user, pagina }) {
         <Link to="/" className="sidebar__item">
           <img src={LogoIcon} alt="" className="sidebar__logo" />
           <div className="sidebar__hide">
-            <p className="sidebar__text font-bold">&nbsp;&nbsp;&nbsp;Zentra</p>
+            <p className="sidebar__text font-bold">{
+                user.sede.includes("Plaza") ? "Zentra Plaza" : "Zentra Hotel"
+              }</p>
           </div>
         </Link>
         <Link to="/inventario" className={getItemClass("Inventario")}>
@@ -41,6 +43,12 @@ function MenuLateral({ user, pagina }) {
           <img src={VentaIcon} alt="" className="sidebar__icon" />
           <div className="sidebar__hide">
             <p className="sidebar__text">Recepción</p>
+          </div>
+        </Link>
+        <Link to="/operaciones" className={getItemClass("Operaciones")}>
+          <img src={OperacionesIcon} alt="" className="sidebar__icon" />
+          <div className="sidebar__hide">
+            <p className="sidebar__text">Operaciones</p>
           </div>
         </Link>
         {/* <Link to="/reservas" className={getItemClass("Reservas")}>
@@ -77,8 +85,8 @@ function MenuLateral({ user, pagina }) {
             <p>{user?.name?.charAt(0)}</p>
           </div>
           <div className="sidebar__hide">
-            <h3 className="sidebar__title">{user?.name}</h3>
-            <p className="sidebar__info"> {user?.role}</p>
+            <h3 className="sidebar__title font-bold">{user?.name}</h3>
+            <p className="sidebar__info text-x"> {user?.role}</p>
           </div>
         </li>
       </ul>

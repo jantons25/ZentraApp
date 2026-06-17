@@ -9,6 +9,9 @@ export const createCortesiaRequest = (cortesias) =>
 export const updateCortesiaLoteRequest = ({ ids, nuevasCortesias }) =>
   axios.put("/cortesias/lote", { ids, nuevasCortesias });
 
+export const updateCortesiaRequest = (id, cortesia) =>
+  axios.put(`/cortesias/${id}`, cortesia);
+
 export const deleteCortesiaRequest = (id) => axios.delete(`/cortesias/${id}`);
 
 export const deleteLoteCortesiasRequest = (id_lote) =>

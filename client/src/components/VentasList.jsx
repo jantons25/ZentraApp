@@ -162,7 +162,7 @@ function VentasList({
       <h1 className="text-2xl bold font-medium">Lista de Ventas</h1>
       <p className="p_final">
         En esta sección puedes revisar y gestionar todas las ventas registradas
-        en el sistema. Usa los filtros por fecha, producto u oficina para
+        en el sistema. Usa los filtros por fecha, producto u habitación para
         encontrar rápidamente lo que necesitas y, si requieres hacer cambios,
         utiliza los botones de Editar o Eliminar en cada registro. Así podrás
         mantener tu histórico de ventas siempre ordenado y actualizado.
@@ -265,10 +265,10 @@ function VentasList({
                 Pago Registrado
               </th>
               <th className="px-6 py-3 text-center bg-gray-100">
-                Oficina
+                Habitación
                 <input
                   type="text"
-                  placeholder="Buscar oficina"
+                  placeholder="Buscar habitación"
                   value={filtroOficina}
                   onChange={(e) => setFiltroOficina(e.target.value)}
                   className="mt-1 w-full text-center text-black border rounded px-2 py-1"

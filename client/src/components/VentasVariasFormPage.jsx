@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { ventaItemSchema } from "../validations/ventaSchema";
+import { toast } from "react-hot-toast";
 
 function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
   const {
@@ -16,7 +17,7 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
   } = useForm({
     resolver: yupResolver(ventaItemSchema),
   });
-  const { createVenta, updateLoteVentas } = useVenta();
+  const { createVenta, updateLoteVentas, updateVentaById } = useVenta();
   const [ventasTemporales, setVentasTemporales] = useState([]);
   const [textBoton, setTextBoton] = useState("Vender");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,6 +25,12 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
   const [productosSinStockRecepcion, setProductosSinStockRecepcion] = useState(
     []
   );
+  // Edición individual de filas
+  const [editIndex, setEditIndex] = useState(null);
+  const [editValues, setEditValues] = useState({ cantidad: "", precio_venta: "" });
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  // Cantidades persistidas al abrir el modal (para validar stock al editar)
+  const [cantidadesIniciales, setCantidadesIniciales] = useState({});
   const totalItems = ventasTemporales.reduce(
     (acc, venta) => acc + (venta.cantidad || 0),
     0
@@ -123,8 +130,107 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
         ),
       }));
       setVentasTemporales(ventasConProductoObj);
+      const iniciales = {};
+      venta.ventas.forEach((v) => {
+        iniciales[v._id] = v.cantidad;
+      });
+      setCantidadesIniciales(iniciales);
+      setEditIndex(null);
     }
   }, [venta, products]);
+
+  const iniciarEdicion = (index) => {
+    if (editIndex !== null) return; // solo una fila en edición a la vez
+    const fila = ventasTemporales[index];
+    setEditIndex(index);
+    setEditValues({
+      cantidad: String(fila.cantidad),
+      precio_venta: String(fila.precio_venta),
+    });
+  };
+
+  const cancelarEdicion = () => {
+    setEditIndex(null);
+    setEditValues({ cantidad: "", precio_venta: "" });
+  };
+
+  const guardarEdicion = async (index) => {
+    if (isSavingEdit) return;
+
+    const cantidad = parseInt(editValues.cantidad, 10);
+    const precio = parseFloat(editValues.precio_venta);
+
+    if (isNaN(cantidad) || cantidad <= 0) {
+      toast.error("La cantidad debe ser un número entero mayor a cero");
+      return;
+    }
+    if (isNaN(precio) || precio <= 0) {
+      toast.error("El precio debe ser mayor a cero");
+      return;
+    }
+
+    const fila = ventasTemporales[index];
+    // El stock de recepción ya descuenta la cantidad original persistida,
+    // por eso se suma de vuelta para conocer el disponible real al editar
+    const disponible =
+      calcularStockRecepcion(fila.producto) +
+      (fila._id ? cantidadesIniciales[fila._id] ?? 0 : 0);
+
+    if (cantidad > disponible) {
+      toast.error(
+        `Stock insuficiente en recepción para ${
+          fila.producto?.nombre || "el producto"
+        }. Disponible: ${disponible}`
+      );
+      return;
+    }
+
+    setIsSavingEdit(true);
+    try {
+      if (fila._id) {
+        const res = await updateVentaById(fila._id, {
+          cantidad,
+          precio_venta: precio,
+        });
+        if (!res) return; // el contexto ya mostró el error
+      } else {
+        toast.success("Producto actualizado en la lista");
+      }
+
+      const delta = cantidad - fila.cantidad;
+      const productoId = fila.producto?._id;
+
+      setVentasTemporales((prev) =>
+        prev.map((v, i) => {
+          if (v.producto?._id === productoId) {
+            const nuevaCantidad = i === index ? cantidad : v.cantidad;
+            return {
+              ...v,
+              cantidad: nuevaCantidad,
+              ...(i === index
+                ? { precio_venta: precio, importe_venta: cantidad * precio }
+                : {}),
+              producto: {
+                ...v.producto,
+                cantidad_vendida: (v.producto.cantidad_vendida || 0) + delta,
+              },
+            };
+          }
+          return i === index
+            ? { ...v, cantidad, precio_venta: precio, importe_venta: cantidad * precio }
+            : v;
+        })
+      );
+
+      if (fila._id) {
+        setCantidadesIniciales((prev) => ({ ...prev, [fila._id]: cantidad }));
+      }
+
+      cancelarEdicion();
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
 
   const pagoRegistrado = watch("pago_registrado");
   const productoId = watch("producto");
@@ -299,7 +405,7 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
                 <th className="px-6 py-3 text-center">Precio</th>
                 <th className="px-6 py-3 text-center">Importe</th>
                 <th className="px-6 py-3 text-center">Pago Registrado</th>
-                <th className="px-6 py-3 text-center">Oficina</th>
+                <th className="px-6 py-3 text-center">Habitación</th>
                 <th className="px-6 py-3 text-center rounded-tr-[10px]">
                   Acción
                 </th>
@@ -309,6 +415,10 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
               {ventasTemporales.map((venta, index) => {
                 const stockRecepcion = calcularStockRecepcion(venta.producto);
                 const tieneStock = venta.cantidad <= stockRecepcion;
+                const enEdicion = editIndex === index;
+                const importeEditado =
+                  (parseInt(editValues.cantidad, 10) || 0) *
+                  (parseFloat(editValues.precio_venta) || 0);
                 return (
                   <tr
                     key={index}
@@ -325,7 +435,24 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-center">{venta.cantidad}</td>
+                    <td className="px-6 py-4 text-center">
+                      {enEdicion ? (
+                        <input
+                          type="number"
+                          min="1"
+                          value={editValues.cantidad}
+                          onChange={(e) =>
+                            setEditValues((prev) => ({
+                              ...prev,
+                              cantidad: e.target.value,
+                            }))
+                          }
+                          className="w-20 bg-gray-200 px-2 py-1 rounded-md text-center"
+                        />
+                      ) : (
+                        venta.cantidad
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-center text-green-600 font-bold">
                       {venta.producto.salidas -
                         (venta.producto.cantidad_vendida +
@@ -333,10 +460,29 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
                           venta.producto.cantidad_cortesia)}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      S/{venta.precio_venta.toFixed(2)}
+                      {enEdicion ? (
+                        <input
+                          type="number"
+                          step="any"
+                          min="0"
+                          value={editValues.precio_venta}
+                          onChange={(e) =>
+                            setEditValues((prev) => ({
+                              ...prev,
+                              precio_venta: e.target.value,
+                            }))
+                          }
+                          className="w-20 bg-gray-200 px-2 py-1 rounded-md text-center"
+                        />
+                      ) : (
+                        <>S/{venta.precio_venta.toFixed(2)}</>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      S/{venta.importe_venta.toFixed(2)}
+                      S/
+                      {enEdicion
+                        ? importeEditado.toFixed(2)
+                        : venta.importe_venta.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 text-center">
                       {venta.pago_registrado}
@@ -345,17 +491,58 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
                       {venta.habitacion || "-"}
                     </td>
                     <td className="px-6 py-4 flex gap-2 justify-center">
-                      <button
-                        onClick={() => {
-                          const nuevasVentas = ventasTemporales.filter(
-                            (_, i) => i !== index
-                          );
-                          setVentasTemporales(nuevasVentas);
-                        }}
-                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-xs cursor-pointer"
-                      >
-                        Eliminar
-                      </button>
+                      {enEdicion ? (
+                        <>
+                          <button
+                            onClick={() => guardarEdicion(index)}
+                            disabled={isSavingEdit}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              isSavingEdit
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-green-600 hover:bg-green-700 cursor-pointer"
+                            }`}
+                          >
+                            {isSavingEdit ? "Guardando..." : "Guardar"}
+                          </button>
+                          <button
+                            onClick={cancelarEdicion}
+                            disabled={isSavingEdit}
+                            className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 text-xs cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => iniciarEdicion(index)}
+                            disabled={editIndex !== null}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              editIndex !== null
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-blue-500 hover:bg-blue-600 cursor-pointer"
+                            }`}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => {
+                              const nuevasVentas = ventasTemporales.filter(
+                                (_, i) => i !== index
+                              );
+                              setVentasTemporales(nuevasVentas);
+                            }}
+                            disabled={editIndex !== null}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              editIndex !== null
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-red-500 hover:bg-red-600 cursor-pointer"
+                            }`}
+                          >
+                            Eliminar
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 );
@@ -389,10 +576,10 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products }) {
             <button
               type="button"
               onClick={handleGuardarVentas}
-              disabled={isSubmitting}
+              disabled={isSubmitting || editIndex !== null}
               className={`px-4 py-2 rounded-md my-2 text-zinc-800
         ${
-          isSubmitting
+          isSubmitting || editIndex !== null
             ? "bg-gray-400 cursor-not-allowed opacity-60"
             : "bg-[#b9bc31] hover:bg-yellow-300 hover:text-black"
         }`}

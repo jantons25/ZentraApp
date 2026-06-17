@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { compraItemSchema } from "../validations/compraSchema.js";
+import { toast } from "react-hot-toast";
 
 function ComprasVariasFormPage({
   closeModal,
@@ -22,10 +23,18 @@ function ComprasVariasFormPage({
     resolver: yupResolver(compraItemSchema),
   });
 
-  const { createCompra, updateLoteCompras } = useCompra();
+  const { createCompra, updateLoteCompras, updateCompra } = useCompra();
   const [comprasTemporales, setComprasTemporales] = useState([]);
   const [textCompra, setTextCompra] = useState("Comprar");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Edición individual de filas
+  const [editIndex, setEditIndex] = useState(null);
+  const [editValues, setEditValues] = useState({
+    cantidad: "",
+    precio_compra: "",
+    fecha_vencimiento: "",
+  });
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const totalItems = comprasTemporales.reduce(
     (acc, compra) => acc + (compra.cantidad || 0),
     0
@@ -93,8 +102,101 @@ function ComprasVariasFormPage({
         ),
       }));
       setComprasTemporales(comprasConProductoObj);
+      setEditIndex(null);
     }
   }, [compra, products]);
+
+  // Convierte fecha (ISO string o Date) al formato del input date
+  const toInputDate = (fecha) => {
+    if (!fecha) return "";
+    const d = new Date(fecha);
+    return isNaN(d) ? "" : d.toISOString().slice(0, 10);
+  };
+
+  const iniciarEdicion = (index) => {
+    if (editIndex !== null) return; // solo una fila en edición a la vez
+    const fila = comprasTemporales[index];
+    setEditIndex(index);
+    setEditValues({
+      cantidad: String(fila.cantidad),
+      precio_compra: String(fila.precio_compra),
+      fecha_vencimiento: toInputDate(fila.fecha_vencimiento),
+    });
+  };
+
+  const cancelarEdicion = () => {
+    setEditIndex(null);
+    setEditValues({ cantidad: "", precio_compra: "", fecha_vencimiento: "" });
+  };
+
+  const guardarEdicion = async (index) => {
+    if (isSavingEdit) return;
+
+    const cantidad = parseInt(editValues.cantidad, 10);
+    const precio = parseFloat(editValues.precio_compra);
+    const fecha = editValues.fecha_vencimiento;
+
+    if (isNaN(cantidad) || cantidad <= 0) {
+      toast.error("La cantidad debe ser un número entero mayor a cero");
+      return;
+    }
+    if (isNaN(precio) || precio <= 0) {
+      toast.error("El precio debe ser mayor a cero");
+      return;
+    }
+    if (!fecha) {
+      toast.error("Seleccione una fecha de vencimiento");
+      return;
+    }
+
+    const fila = comprasTemporales[index];
+    // No se puede reducir la cantidad por debajo de lo ya usado en salidas
+    const cantidadUsada = fila._id
+      ? (fila.cantidad || 0) - (fila.cantidad_disponible ?? fila.cantidad ?? 0)
+      : 0;
+    if (cantidad < cantidadUsada) {
+      toast.error(
+        `No se puede reducir la cantidad por debajo de lo ya usado en salidas (${cantidadUsada})`
+      );
+      return;
+    }
+
+    setIsSavingEdit(true);
+    try {
+      const fechaISO = new Date(fecha).toISOString();
+
+      if (fila._id) {
+        const res = await updateCompra(fila._id, {
+          cantidad,
+          precio_compra: precio,
+          fecha_vencimiento: fechaISO,
+        });
+        if (!res) return; // el contexto ya mostró el error
+      } else {
+        toast.success("Producto actualizado en la lista");
+      }
+
+      setComprasTemporales((prev) =>
+        prev.map((c, i) =>
+          i === index
+            ? {
+                ...c,
+                cantidad,
+                precio_compra: precio,
+                importe_compra: cantidad * precio,
+                fecha_vencimiento: fechaISO,
+                ...(c._id
+                  ? { cantidad_disponible: cantidad - cantidadUsada }
+                  : {}),
+              }
+            : c
+        )
+      );
+      cancelarEdicion();
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
 
   return (
     <div className="bg-white w-full p-5 rounded-md flex flex-row flex-wrap">
@@ -194,46 +296,143 @@ function ComprasVariasFormPage({
               </tr>
             </thead>
             <tbody>
-              {comprasTemporales.map((compra, index) => (
-                <tr
-                  key={index}
-                  className="border-b hover:bg-gray-50 transition duration-150"
-                >
-                  <td className="px-6 py-4 text-center">
-                    {compra.producto?.nombre || "Sin nombre"}
-                  </td>
-                  <td className="px-6 py-4 text-center">{compra.cantidad}</td>
-                  <td className="px-6 py-4 text-center">
-                    S/{compra.precio_compra.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    S/{compra.importe_compra.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    {new Date(compra.fecha_vencimiento).toLocaleDateString(
-                      "es-PE",
-                      {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      }
-                    )}
-                  </td>
-                  <td className="px-6 py-4 flex gap-2 justify-center">
-                    <button
-                      onClick={() => {
-                        const nuevasCompras = comprasTemporales.filter(
-                          (_, i) => i !== index
-                        );
-                        setComprasTemporales(nuevasCompras);
-                      }}
-                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-xs cursor-pointer"
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {comprasTemporales.map((compra, index) => {
+                const enEdicion = editIndex === index;
+                const importeEditado =
+                  (parseInt(editValues.cantidad, 10) || 0) *
+                  (parseFloat(editValues.precio_compra) || 0);
+                return (
+                  <tr
+                    key={index}
+                    className="border-b hover:bg-gray-50 transition duration-150"
+                  >
+                    <td className="px-6 py-4 text-center">
+                      {compra.producto?.nombre || "Sin nombre"}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {enEdicion ? (
+                        <input
+                          type="number"
+                          min="1"
+                          value={editValues.cantidad}
+                          onChange={(e) =>
+                            setEditValues((prev) => ({
+                              ...prev,
+                              cantidad: e.target.value,
+                            }))
+                          }
+                          className="w-20 bg-gray-200 px-2 py-1 rounded-md text-center"
+                        />
+                      ) : (
+                        compra.cantidad
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {enEdicion ? (
+                        <input
+                          type="number"
+                          step="any"
+                          min="0"
+                          value={editValues.precio_compra}
+                          onChange={(e) =>
+                            setEditValues((prev) => ({
+                              ...prev,
+                              precio_compra: e.target.value,
+                            }))
+                          }
+                          className="w-20 bg-gray-200 px-2 py-1 rounded-md text-center"
+                        />
+                      ) : (
+                        <>S/{compra.precio_compra.toFixed(2)}</>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      S/
+                      {enEdicion
+                        ? importeEditado.toFixed(2)
+                        : compra.importe_compra.toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {enEdicion ? (
+                        <input
+                          type="date"
+                          value={editValues.fecha_vencimiento}
+                          onChange={(e) =>
+                            setEditValues((prev) => ({
+                              ...prev,
+                              fecha_vencimiento: e.target.value,
+                            }))
+                          }
+                          className="w-32 bg-gray-200 px-2 py-1 rounded-md text-center"
+                        />
+                      ) : (
+                        new Date(compra.fecha_vencimiento).toLocaleDateString(
+                          "es-PE",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          }
+                        )
+                      )}
+                    </td>
+                    <td className="px-6 py-4 flex gap-2 justify-center">
+                      {enEdicion ? (
+                        <>
+                          <button
+                            onClick={() => guardarEdicion(index)}
+                            disabled={isSavingEdit}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              isSavingEdit
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-green-600 hover:bg-green-700 cursor-pointer"
+                            }`}
+                          >
+                            {isSavingEdit ? "Guardando..." : "Guardar"}
+                          </button>
+                          <button
+                            onClick={cancelarEdicion}
+                            disabled={isSavingEdit}
+                            className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 text-xs cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => iniciarEdicion(index)}
+                            disabled={editIndex !== null}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              editIndex !== null
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-blue-500 hover:bg-blue-600 cursor-pointer"
+                            }`}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => {
+                              const nuevasCompras = comprasTemporales.filter(
+                                (_, i) => i !== index
+                              );
+                              setComprasTemporales(nuevasCompras);
+                            }}
+                            disabled={editIndex !== null}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              editIndex !== null
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-red-500 hover:bg-red-600 cursor-pointer"
+                            }`}
+                          >
+                            Eliminar
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -263,10 +462,10 @@ function ComprasVariasFormPage({
             <button
               type="submit"
               onClick={handleGuardarCompras}
-              disabled={isSubmitting}
+              disabled={isSubmitting || editIndex !== null}
               className={`px-4 py-2 rounded-md my-2 text-zinc-800
         ${
-          isSubmitting
+          isSubmitting || editIndex !== null
             ? "bg-gray-400 cursor-not-allowed opacity-60"
             : "bg-[#b9bc31] hover:bg-yellow-300 hover:text-black"
         }`}

@@ -20,6 +20,8 @@ function ModalBigVarios({ isOpen, closeModal, component, vistaActiva }) {
               ? "Nueva Salida"
               : vistaActiva === "Productos"
               ? "Nuevo Producto"
+              : vistaActiva?.startsWith("Novedades")
+              ? "Nueva Novedad"
               : vistaActiva}
           </h2>
           <button className="bg-red-500 text-white rounded hover:bg-red-600 cursor-pointer">

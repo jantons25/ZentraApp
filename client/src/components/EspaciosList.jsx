@@ -36,7 +36,7 @@ function EspaciosList({ espacios, refreshPagina }) {
     <div className="bg-white p-4 w-full descripcion__container">
       <h1 className="text-2xl bold font-medium">Lista de Espacios</h1>
       <p className="p_final">
-        Gestiona el inventario de tus salas y oficinas. Configura capacidades,
+        Gestiona el inventario de tus salas y Habitaciones. Configura capacidades,
         servicios incluidos y equipamiento disponible para asegurar que cada
         ambiente esté listo para su uso.
       </p>

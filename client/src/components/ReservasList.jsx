@@ -128,7 +128,7 @@ function ReservasList({
     <div className="bg-white p-4 w-full descripcion__container">
       <h1 className="text-2xl bold font-medium">Lista de Reservas</h1>
       <p className="p_final">
-        Administra y organiza tus reservas de salas y oficinas en un solo lugar.
+        Administra y organiza tus reservas de salas y Habtiaciones en un solo lugar.
         Aquí puedes revisar estados, editar detalles y mantener tu agenda al
         día.
       </p>

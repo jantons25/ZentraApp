@@ -3,6 +3,7 @@ import { useSalida } from "../context/SalidaContext.jsx";
 import { useEffect, useState } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { salidaItemSchema } from "../validations/salidaSchema";
+import { toast } from "react-hot-toast";
 
 function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
   const {
@@ -16,12 +17,18 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
     resolver: yupResolver(salidaItemSchema),
   });
 
-  const { createSalida, updateLoteSalidas } = useSalida();
+  const { createSalida, updateLoteSalidas, updateSalida } = useSalida();
   const [salidasTemporales, setSalidasTemporales] = useState([]);
   const [textBoton, setTextBoton] = useState("Registrar");
   const [isSubmitting, setIsSubmitting] = useState(false);
   //01.02.26 Productos sin stock
   const [productosSinStock, setProductosSinStock] = useState([]);
+  // Edición individual de filas
+  const [editIndex, setEditIndex] = useState(null);
+  const [editValues, setEditValues] = useState({ cantidad: "" });
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  // Cantidades persistidas al abrir el modal (para validar stock al editar)
+  const [cantidadesIniciales, setCantidadesIniciales] = useState({});
 
   const totalItems = salidasTemporales.reduce(
     (acc, salida) => acc + (salida.cantidad || 0),
@@ -116,8 +123,102 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
         ),
       }));
       setSalidasTemporales(salidasConProductoObj);
+      const iniciales = {};
+      salida.salidas.forEach((s) => {
+        iniciales[s._id] = s.cantidad;
+      });
+      setCantidadesIniciales(iniciales);
+      setEditIndex(null);
     }
   }, [salida, products]);
+
+  const iniciarEdicion = (index) => {
+    if (editIndex !== null) return; // solo una fila en edición a la vez
+    const fila = salidasTemporales[index];
+    // Una salida ya consumida por ventas no se puede modificar
+    if (fila._id && fila.cantidad_disponible < fila.cantidad) {
+      toast.error(
+        "No se puede editar: la salida ya fue utilizada en ventas, reposiciones o cortesías"
+      );
+      return;
+    }
+    setEditIndex(index);
+    setEditValues({ cantidad: String(fila.cantidad) });
+  };
+
+  const cancelarEdicion = () => {
+    setEditIndex(null);
+    setEditValues({ cantidad: "" });
+  };
+
+  const guardarEdicion = async (index) => {
+    if (isSavingEdit) return;
+
+    const cantidad = parseInt(editValues.cantidad, 10);
+
+    if (isNaN(cantidad) || cantidad <= 0) {
+      toast.error("La cantidad debe ser un número entero mayor a cero");
+      return;
+    }
+
+    const fila = salidasTemporales[index];
+    // El stock central ya descuenta la cantidad original persistida,
+    // por eso se suma de vuelta para conocer el disponible real al editar
+    const stockCentral = fila.producto.ingresos - fila.producto.salidas;
+    const disponible =
+      stockCentral + (fila._id ? cantidadesIniciales[fila._id] ?? 0 : 0);
+
+    if (cantidad > disponible) {
+      toast.error(
+        `Stock central insuficiente para ${
+          fila.producto?.nombre || "el producto"
+        }. Disponible: ${disponible}`
+      );
+      return;
+    }
+
+    setIsSavingEdit(true);
+    try {
+      if (fila._id) {
+        await updateSalida(fila._id, { cantidad });
+      } else {
+        toast.success("Producto actualizado en la lista");
+      }
+
+      const delta = cantidad - fila.cantidad;
+      const productoId = fila.producto?._id;
+
+      setSalidasTemporales((prev) =>
+        prev.map((s, i) => {
+          if (s.producto?._id === productoId) {
+            const nuevaCantidad = i === index ? cantidad : s.cantidad;
+            return {
+              ...s,
+              cantidad: nuevaCantidad,
+              ...(i === index && s._id ? { cantidad_disponible: cantidad } : {}),
+              producto: {
+                ...s.producto,
+                salidas: (s.producto.salidas || 0) + delta,
+              },
+            };
+          }
+          return i === index
+            ? { ...s, cantidad, ...(s._id ? { cantidad_disponible: cantidad } : {}) }
+            : s;
+        })
+      );
+
+      if (fila._id) {
+        setCantidadesIniciales((prev) => ({ ...prev, [fila._id]: cantidad }));
+      }
+
+      cancelarEdicion();
+    } catch (error) {
+      // el contexto ya mostró el toast de error
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
 
   return (
     <div className="bg-white w-full p-5 rounded-md flex flex-row flex-wrap">
@@ -204,38 +305,96 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
               </tr>
             </thead>
             <tbody>
-              {salidasTemporales.map((salida, index) => (
-                <tr
-                  key={index}
-                  className={`border-b transition duration-150 ${
-                    salida.cantidad >
-                    salida.producto.ingresos - salida.producto.salidas
-                      ? "bg-red-100"
-                      : "bg-white"
-                  }`}
-                >
-                  <td className="px-6 py-4 text-center">
-                    {salida.producto?.nombre || "Sin nombre"}
-                  </td>
-                  <td className="px-6 py-4 text-center">{salida.cantidad}</td>
-                  <td className="px-6 py-4 text-center text-green-600 font-bold">
-                    {salida.producto.ingresos - salida.producto.salidas}
-                  </td>
-                  <td className="px-6 py-4 flex justify-center">
-                    <button
-                      onClick={() => {
-                        const nuevas = salidasTemporales.filter(
-                          (_, i) => i !== index
-                        );
-                        setSalidasTemporales(nuevas);
-                      }}
-                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-xs cursor-pointer"
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {salidasTemporales.map((salida, index) => {
+                const enEdicion = editIndex === index;
+                return (
+                  <tr
+                    key={index}
+                    className={`border-b transition duration-150 ${
+                      salida.cantidad >
+                      salida.producto.ingresos - salida.producto.salidas
+                        ? "bg-red-100"
+                        : "bg-white"
+                    }`}
+                  >
+                    <td className="px-6 py-4 text-center">
+                      {salida.producto?.nombre || "Sin nombre"}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {enEdicion ? (
+                        <input
+                          type="number"
+                          min="1"
+                          value={editValues.cantidad}
+                          onChange={(e) =>
+                            setEditValues({ cantidad: e.target.value })
+                          }
+                          className="w-20 bg-gray-200 px-2 py-1 rounded-md text-center"
+                        />
+                      ) : (
+                        salida.cantidad
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center text-green-600 font-bold">
+                      {salida.producto.ingresos - salida.producto.salidas}
+                    </td>
+                    <td className="px-6 py-4 flex gap-2 justify-center">
+                      {enEdicion ? (
+                        <>
+                          <button
+                            onClick={() => guardarEdicion(index)}
+                            disabled={isSavingEdit}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              isSavingEdit
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-green-600 hover:bg-green-700 cursor-pointer"
+                            }`}
+                          >
+                            {isSavingEdit ? "Guardando..." : "Guardar"}
+                          </button>
+                          <button
+                            onClick={cancelarEdicion}
+                            disabled={isSavingEdit}
+                            className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 text-xs cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => iniciarEdicion(index)}
+                            disabled={editIndex !== null}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              editIndex !== null
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-blue-500 hover:bg-blue-600 cursor-pointer"
+                            }`}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => {
+                              const nuevas = salidasTemporales.filter(
+                                (_, i) => i !== index
+                              );
+                              setSalidasTemporales(nuevas);
+                            }}
+                            disabled={editIndex !== null}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              editIndex !== null
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-red-500 hover:bg-red-600 cursor-pointer"
+                            }`}
+                          >
+                            Eliminar
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -261,10 +420,10 @@ function SalidaVariasFormPage({ closeModal, refreshPagina, salida, products }) {
             <button
               type="button"
               onClick={handleGuardarSalidas}
-              disabled={isSubmitting}
+              disabled={isSubmitting || editIndex !== null}
               className={`px-4 py-2 rounded-md my-2 text-zinc-800
         ${
-          isSubmitting
+          isSubmitting || editIndex !== null
             ? "bg-gray-400 cursor-not-allowed opacity-60"
             : "bg-[#b9bc31] hover:bg-yellow-300 hover:text-black"
         }`}

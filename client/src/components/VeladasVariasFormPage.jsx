@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useVelada } from "../context/VeladaContext.jsx";
+import { toast } from "react-hot-toast";
 
 function VeladasVariasFormPage({
   closeModal,
@@ -15,12 +16,18 @@ function VeladasVariasFormPage({
     reset,
   } = useForm();
 
-  const { createVelada, updateLoteVelada } = useVelada();
+  const { createVelada, updateLoteVelada, updateVelada } = useVelada();
   const [veladasTemporales, setVeladasTemporales] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [productosSinStockRecepcion, setProductosSinStockRecepcion] = useState(
     []
   );
+  // Edición individual de filas
+  const [editIndex, setEditIndex] = useState(null);
+  const [editValues, setEditValues] = useState({ cantidad: "" });
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  // Cantidades persistidas al abrir el modal (para validar stock al editar)
+  const [cantidadesIniciales, setCantidadesIniciales] = useState({});
 
   const totalItems = veladasTemporales.reduce(
     (acc, v) => acc + (Number(v.cantidad) || 0),
@@ -123,8 +130,91 @@ function VeladasVariasFormPage({
         ),
       }));
       setVeladasTemporales(veladasConProductoObj);
+      const iniciales = {};
+      velada.veladas.forEach((v) => {
+        iniciales[v._id] = v.cantidad;
+      });
+      setCantidadesIniciales(iniciales);
+      setEditIndex(null);
     }
   }, [velada, products]);
+
+  const iniciarEdicion = (index) => {
+    if (editIndex !== null) return; // solo una fila en edición a la vez
+    const fila = veladasTemporales[index];
+    setEditIndex(index);
+    setEditValues({ cantidad: String(fila.cantidad) });
+  };
+
+  const cancelarEdicion = () => {
+    setEditIndex(null);
+    setEditValues({ cantidad: "" });
+  };
+
+  const guardarEdicion = async (index) => {
+    if (isSavingEdit) return;
+
+    const cantidad = parseInt(editValues.cantidad, 10);
+
+    if (isNaN(cantidad) || cantidad <= 0) {
+      toast.error("La cantidad debe ser un número entero mayor a cero");
+      return;
+    }
+
+    const fila = veladasTemporales[index];
+    // El stock de recepción ya descuenta la cantidad original persistida,
+    // por eso se suma de vuelta para conocer el disponible real al editar
+    const disponible =
+      calcularStockRecepcion(fila.producto) +
+      (fila._id ? cantidadesIniciales[fila._id] ?? 0 : 0);
+
+    if (cantidad > disponible) {
+      toast.error(
+        `Stock insuficiente en recepción para ${
+          fila.producto?.nombre || "el producto"
+        }. Disponible: ${disponible}`
+      );
+      return;
+    }
+
+    setIsSavingEdit(true);
+    try {
+      if (fila._id) {
+        const res = await updateVelada(fila._id, { cantidad });
+        if (!res) return; // el contexto ya mostró el error
+      } else {
+        toast.success("Producto actualizado en la lista");
+      }
+
+      const delta = cantidad - fila.cantidad;
+      const productoId = fila.producto?._id;
+
+      setVeladasTemporales((prev) =>
+        prev.map((v, i) => {
+          const nuevaCantidad = i === index ? cantidad : v.cantidad;
+          if (v.producto?._id === productoId) {
+            return {
+              ...v,
+              cantidad: nuevaCantidad,
+              producto: {
+                ...v.producto,
+                cantidad_velada: (v.producto.cantidad_velada || 0) + delta,
+              },
+            };
+          }
+          return i === index ? { ...v, cantidad } : v;
+        })
+      );
+
+      if (fila._id) {
+        setCantidadesIniciales((prev) => ({ ...prev, [fila._id]: cantidad }));
+      }
+
+      cancelarEdicion();
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
 
   return (
     <div className="bg-white w-full p-5 rounded-md flex flex-row flex-wrap gap-4">
@@ -280,41 +370,99 @@ function VeladasVariasFormPage({
               </tr>
             </thead>
             <tbody>
-              {veladasTemporales.map((v, index) => (
-                <tr
-                  key={index}
-                  className={`border-b transition duration-150 ${
-                    v.cantidad > calcularStockRecepcion(v.producto)
-                      ? "bg-red-100"
-                      : "bg-white"
-                  }`}
-                >
-                  <td className="px-6 py-4 text-center">
-                    {v.producto?.nombre || "Sin nombre"}
-                  </td>
-                  <td className="px-6 py-4 text-center">{v.cantidad}</td>
-                  <td className="px-6 py-4 text-center text-green-600 font-bold">
-                    {calcularStockRecepcion(v.producto)}
-                  </td>
-                  <td className="px-6 py-4 text-center">{v.responsable}</td>
-                  <td className="px-6 py-4 text-center">
-                    {v.observacion || "-"}
-                  </td>
-                  <td className="px-6 py-4 flex justify-center">
-                    <button
-                      onClick={() => {
-                        const nuevas = veladasTemporales.filter(
-                          (_, i) => i !== index
-                        );
-                        setVeladasTemporales(nuevas);
-                      }}
-                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-xs cursor-pointer"
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {veladasTemporales.map((v, index) => {
+                const enEdicion = editIndex === index;
+                return (
+                  <tr
+                    key={index}
+                    className={`border-b transition duration-150 ${
+                      v.cantidad > calcularStockRecepcion(v.producto)
+                        ? "bg-red-100"
+                        : "bg-white"
+                    }`}
+                  >
+                    <td className="px-6 py-4 text-center">
+                      {v.producto?.nombre || "Sin nombre"}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {enEdicion ? (
+                        <input
+                          type="number"
+                          min="1"
+                          value={editValues.cantidad}
+                          onChange={(e) =>
+                            setEditValues({ cantidad: e.target.value })
+                          }
+                          className="w-20 bg-gray-200 px-2 py-1 rounded-md text-center"
+                        />
+                      ) : (
+                        v.cantidad
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center text-green-600 font-bold">
+                      {calcularStockRecepcion(v.producto)}
+                    </td>
+                    <td className="px-6 py-4 text-center">{v.responsable}</td>
+                    <td className="px-6 py-4 text-center">
+                      {v.observacion || "-"}
+                    </td>
+                    <td className="px-6 py-4 flex gap-2 justify-center">
+                      {enEdicion ? (
+                        <>
+                          <button
+                            onClick={() => guardarEdicion(index)}
+                            disabled={isSavingEdit}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              isSavingEdit
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-green-600 hover:bg-green-700 cursor-pointer"
+                            }`}
+                          >
+                            {isSavingEdit ? "Guardando..." : "Guardar"}
+                          </button>
+                          <button
+                            onClick={cancelarEdicion}
+                            disabled={isSavingEdit}
+                            className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 text-xs cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => iniciarEdicion(index)}
+                            disabled={editIndex !== null}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              editIndex !== null
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-blue-500 hover:bg-blue-600 cursor-pointer"
+                            }`}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => {
+                              const nuevas = veladasTemporales.filter(
+                                (_, i) => i !== index
+                              );
+                              setVeladasTemporales(nuevas);
+                            }}
+                            disabled={editIndex !== null}
+                            className={`text-white px-3 py-1 rounded text-xs ${
+                              editIndex !== null
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-red-500 hover:bg-red-600 cursor-pointer"
+                            }`}
+                          >
+                            Eliminar
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
               {veladasTemporales.length === 0 && (
                 <tr>
                   <td
@@ -352,10 +500,10 @@ function VeladasVariasFormPage({
             <button
               type="button"
               onClick={handleGuardarVeladas}
-              disabled={isSubmitting}
+              disabled={isSubmitting || editIndex !== null}
               className={`px-4 py-2 rounded-md my-2 text-zinc-800
         ${
-          isSubmitting
+          isSubmitting || editIndex !== null
             ? "bg-gray-400 cursor-not-allowed opacity-60"
             : "bg-[#b9bc31] hover:bg-yellow-300 hover:text-black"
         }`}
