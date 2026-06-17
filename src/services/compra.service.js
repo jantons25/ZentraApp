@@ -201,7 +201,7 @@ export const actualizarCompraIndividual = async (compraId, nuevosDatos) => {
       importe_compra: nuevaCantidad * nuevoPrecio,
     },
     { new: true }
-  );
+  ).populate(["producto", "user"]);
 
   return compraActualizada;
 };

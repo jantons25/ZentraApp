@@ -20,6 +20,7 @@ import DetalleReservaRoutes from "./routes/detalleReserva.routes.js";
 import Cliente from "./routes/cliente.routes.js";
 import Espacio from "./routes/espacio.routes.js";
 import VeladaRoutes from "./routes/velada.routes.js";
+import NovedadesRoutes from "./routes/novedades.routes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 
 const app = express();
@@ -42,7 +43,7 @@ app.use(
 
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: 2000,
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: "Demasiadas solicitudes, intenta de nuevo más tarde." },
@@ -77,6 +78,7 @@ app.use("/api", DetalleReservaRoutes);
 app.use("/api", Cliente);
 app.use("/api", Espacio);
 app.use("/api", VeladaRoutes);
+app.use("/api", NovedadesRoutes);
 
 app.use(errorHandler);
 

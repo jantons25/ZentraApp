@@ -140,20 +140,61 @@ export const actualizarReposicionIndividual = async (reposicionId, nuevosDatos) 
 
   const nuevaCantidad = nuevosDatos.cantidad ?? reposicion.cantidad;
 
-  if (nuevaCantidad <= 0) {
+  if (nuevaCantidad == null || isNaN(nuevaCantidad) || nuevaCantidad <= 0) {
     throw new Error("Cantidad debe ser mayor a 0.");
   }
 
-  const reposicionActualizada = await Reposicion.findByIdAndUpdate(
-    reposicionId,
-    {
-      ...nuevosDatos,
-      cantidad: nuevaCantidad,
-    },
-    { new: true }
-  );
+  if (Number(nuevaCantidad) !== Number(reposicion.cantidad)) {
+    // Revertir el consumo original y volver a consumir FIFO con la nueva cantidad,
+    // para mantener consistentes salidas, kardex y cantidad_repuesta del producto
+    if (reposicion.lotes_repuestos?.length) {
+      await revertirConsumoSalidas(Salida, reposicion.lotes_repuestos);
+    }
 
-  return reposicionActualizada;
+    let nuevosLotes;
+    try {
+      nuevosLotes = await consumirStockFIFO(
+        Salida,
+        reposicion.producto,
+        Number(nuevaCantidad),
+        reposicion.sede
+      );
+    } catch (error) {
+      // Restaurar el consumo original para no dejar el stock inconsistente
+      const restaurados = await consumirStockFIFO(
+        Salida,
+        reposicion.producto,
+        Number(reposicion.cantidad),
+        reposicion.sede
+      );
+      reposicion.lotes_repuestos = restaurados;
+      await reposicion.save();
+      throw error;
+    }
+
+    reposicion.lotes_repuestos = nuevosLotes;
+
+    const producto = await Product.findById(reposicion.producto);
+    if (producto) {
+      producto.cantidad_repuesta = Math.max(
+        0,
+        Number(producto.cantidad_repuesta || 0) -
+          Number(reposicion.cantidad) +
+          Number(nuevaCantidad)
+      );
+      await producto.save();
+    }
+  }
+
+  reposicion.cantidad = Number(nuevaCantidad);
+  if (nuevosDatos.habitacion != null) reposicion.habitacion = nuevosDatos.habitacion;
+  if (nuevosDatos.responsable != null) reposicion.responsable = nuevosDatos.responsable;
+  if (nuevosDatos.observacion != null) reposicion.observacion = nuevosDatos.observacion;
+
+  const guardada = await reposicion.save();
+  await guardada.populate(["producto", "user"]);
+
+  return guardada;
 };
 
 export const eliminarLoteReposicionesPorId = async (id_lote) => {

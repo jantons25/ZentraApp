@@ -138,20 +138,60 @@ export const actualizarCortesiaIndividual = async (cortesiaId, nuevosDatos) => {
 
   const nuevaCantidad = nuevosDatos.cantidad ?? cortesia.cantidad;
 
-  if (nuevaCantidad <= 0) {
+  if (nuevaCantidad == null || isNaN(nuevaCantidad) || nuevaCantidad <= 0) {
     throw new Error("Cantidad debe ser mayor a 0.");
   }
 
-  const cortesiaActualizada = await Cortesia.findByIdAndUpdate(
-    cortesiaId,
-    {
-      ...nuevosDatos,
-      cantidad: nuevaCantidad,
-    },
-    { new: true }
-  );
+  if (Number(nuevaCantidad) !== Number(cortesia.cantidad)) {
+    // Revertir el consumo original y volver a consumir FIFO con la nueva cantidad,
+    // para mantener consistentes salidas, kardex y cantidad_cortesia del producto
+    if (cortesia.lotes_cortesias?.length) {
+      await revertirConsumoSalidas(Salida, cortesia.lotes_cortesias);
+    }
 
-  return cortesiaActualizada;
+    let nuevosLotes;
+    try {
+      nuevosLotes = await consumirStockFIFO(
+        Salida,
+        cortesia.producto,
+        Number(nuevaCantidad),
+        cortesia.sede
+      );
+    } catch (error) {
+      // Restaurar el consumo original para no dejar el stock inconsistente
+      const restaurados = await consumirStockFIFO(
+        Salida,
+        cortesia.producto,
+        Number(cortesia.cantidad),
+        cortesia.sede
+      );
+      cortesia.lotes_cortesias = restaurados;
+      await cortesia.save();
+      throw error;
+    }
+
+    cortesia.lotes_cortesias = nuevosLotes;
+
+    const producto = await Product.findById(cortesia.producto);
+    if (producto) {
+      producto.cantidad_cortesia = Math.max(
+        0,
+        Number(producto.cantidad_cortesia || 0) -
+          Number(cortesia.cantidad) +
+          Number(nuevaCantidad)
+      );
+      await producto.save();
+    }
+  }
+
+  cortesia.cantidad = Number(nuevaCantidad);
+  if (nuevosDatos.responsable != null) cortesia.responsable = nuevosDatos.responsable;
+  if (nuevosDatos.observacion != null) cortesia.observacion = nuevosDatos.observacion;
+
+  const guardada = await cortesia.save();
+  await guardada.populate(["producto", "user"]);
+
+  return guardada;
 };
 
 export const eliminarLoteCortesiasPorId = async (id_lote) => {

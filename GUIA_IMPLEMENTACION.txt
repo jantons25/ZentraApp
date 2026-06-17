@@ -1,0 +1,468 @@
+================================================================================
+                  GUÍA DE IMPLEMENTACIÓN POST-AUDITORÍA
+                          ZENTRA APP
+================================================================================
+
+================================================================================
+                         PASO 1: CONFIGURACIÓN .ENV
+================================================================================
+
+Ubicación del archivo: C:\Users\Administrador\Documents\ZentraApp\.env
+
+Crear archivo en texto plano (NO Excel, Word, etc.):
+────────────────────────────────────────────────────
+
+# ============================================================================
+# MONGODB
+# ============================================================================
+# Cambia "localhost" a tu servidor MongoDB si no está local
+MONGO_URI=mongodb://localhost:27017/zentra_app
+
+# ============================================================================
+# SERVIDOR
+# ============================================================================
+PORT=5000
+NODE_ENV=development
+
+# Para producción:
+# NODE_ENV=production
+
+# ============================================================================
+# FRONTEND
+# ============================================================================
+# Ubicación del frontend (desarrollo)
+FRONTEND_URL=http://localhost:5173
+
+# Para producción (múltiples dominios):
+# FRONTEND_URL=https://tudominio.com,https://www.tudominio.com
+
+# ============================================================================
+# SEGURIDAD - JWT
+# ============================================================================
+# ⚠️  CRÍTICO: Generar un secreto aleatorio seguro
+# Mínimo 32 caracteres. NUNCA usar el valor de ejemplo.
+#
+# Para generar en Node.js:
+# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+#
+# Para generar en PowerShell:
+# [System.Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+#
+# Para generar en Bash:
+# openssl rand -hex 32
+
+JWT_SECRET=tu_secreto_aleatorio_muy_largo_y_seguro_aqui_minimo_32_caracteres_CAMBIAR_YA
+
+# ============================================================================
+# CREDENCIALES DE SUPER ADMIN
+# ============================================================================
+# ⚠️  CRÍTICO: Cambiar después del primer login
+# Estos son los datos de la primera cuenta administrativa
+
+SUPER_ADMIN_USER=admin
+SUPER_ADMIN_PASS=Change@Me123
+SUPER_ADMIN_NAME=Administrador
+
+# ============================================================================
+# EMAILS (OPCIONAL - para notificaciones)
+# ============================================================================
+# SMTP_HOST=tu_servidor_smtp.com
+# SMTP_PORT=587
+# SMTP_USER=tu_email@dominio.com
+# SMTP_PASS=tu_contraseña
+
+# ============================================================================
+# LOGGING (OPCIONAL - para producción)
+# ============================================================================
+# LOG_LEVEL=info
+# LOG_FILE=/var/log/zentra/app.log
+
+# ============================================================================
+
+────────────────────────────────────────────────────────────────────────────
+
+Verificación:
+  ✓ JWT_SECRET tiene al menos 32 caracteres aleatorios
+  ✓ SUPER_ADMIN_USER y SUPER_ADMIN_PASS cambiados
+  ✓ Archivo .env está en la raíz (NO dentro de src/)
+  ✓ Archivo .env está en .gitignore (NO en repositorio)
+
+================================================================================
+              PASO 2: GENERAR SECRETO JWT SEGURO
+================================================================================
+
+OPCIÓN A: Node.js (Recomendado)
+────────────────────────────────
+1. Abrir terminal/PowerShell en el proyecto
+2. Ejecutar:
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+3. Copiar el output (será algo como:
+   a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6)
+4. Pegar en JWT_SECRET en .env
+
+
+OPCIÓN B: PowerShell
+─────────────────────
+[System.Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+
+
+OPCIÓN C: En línea (si tienes OpenSSL)
+────────────────────────────────────────
+openssl rand -hex 32
+
+
+VERIFICACIÓN:
+✓ Secret tiene mínimo 32 caracteres
+✓ Contiene mezcla de números y letras
+✓ Es completamente aleatorio
+✓ NUNCA guardar en repositorio git
+
+================================================================================
+         PASO 3: EJECUTAR SCRIPT CREACIÓN SUPERADMIN
+================================================================================
+
+Después de configurar .env:
+
+1. Abrir terminal en la raíz del proyecto
+2. Ejecutar:
+   npm run create-admin
+
+3. Verificar output:
+   "✓ Superadmin created successfully"
+
+4. Si hay error:
+   - Verificar que .env existe
+   - Verificar que SUPER_ADMIN_USER y SUPER_ADMIN_PASS están definidos
+   - Verificar que MongoDB está corriendo (MONGO_URI)
+   - Verificar que node_modules está instalado (npm install)
+
+================================================================================
+                  PASO 4: INICIAR APLICACIÓN
+================================================================================
+
+Backend:
+────────
+1. npm install (si no lo hiciste)
+2. npm start
+
+   Esperado:
+   ✓ Listening on port 5000
+   ✓ Connected to MongoDB
+
+Frontend:
+─────────
+1. cd client
+2. npm install (si no lo hiciste)
+3. npm run dev
+
+   Esperado:
+   ✓ Local: http://localhost:5173
+
+
+Acceder a http://localhost:5173
+Login con:
+  - Usuario: admin (o el que pusiste en SUPER_ADMIN_USER)
+  - Contraseña: Change@Me123 (o la que pusiste en SUPER_ADMIN_PASS)
+
+================================================================================
+            PASO 5: CAMBIAR CREDENCIALES DE SUPERADMIN
+================================================================================
+
+⚠️  IMPORTANTE: Hacer en primer login
+
+1. Loguearse como admin
+2. Ir a Perfil / Configuración / Cambiar Contraseña
+3. Cambiar username a algo único (ej: admin_empresa)
+4. Cambiar contraseña a algo FUERTE:
+   - Mínimo 12 caracteres
+   - Contener mayúsculas, minúsculas, números, símbolos
+   - Guardar en gestor de contraseñas (1Password, Bitwarden, etc.)
+5. Guardar los cambios
+
+Ejemplo de contraseña fuerte:
+  ZentraApp$2026#Secure!Admin
+
+================================================================================
+                 PASO 6: VERIFICAR SEGURIDAD
+================================================================================
+
+Tests de seguridad básicos:
+
+1. Test: Endpoint /register sin autenticación
+   ─────────────────────────────────────────
+   $ curl -X POST http://localhost:5000/auth/register \
+     -H "Content-Type: application/json" \
+     -d '{"username":"test","password":"test"}'
+
+   Esperado: 401 Unauthorized (NO debería permitir)
+
+
+2. Test: Login con usuario inactivo
+   ──────────────────────────────────
+   (En la BD, cambiar status de un user a "inactive")
+   Intentar login con ese user
+
+   Esperado: 403 "Usuario desactivado"
+
+
+3. Test: Brute force en login
+   ───────────────────────────
+   $ for i in {1..15}; do curl -X POST \
+     http://localhost:5000/auth/login \
+     -d '{"username":"admin","password":"wrong"}'; done
+
+   Esperado: Después de 10 intentos, error de rate limit (429)
+
+
+4. Test: Token expirado en frontend
+   ─────────────────────────────────
+   - Loguearse
+   - Esperar a que token expire (o modificar exp en JWT)
+   - Hacer click en cualquier acción
+   - Debería redirigir a /login automáticamente
+
+
+5. Test: CORS desde origin no permitido
+   ───────────────────────────────────
+   $ curl -X GET http://localhost:5000/api/products \
+     -H "Origin: http://evil.com"
+
+   Esperado: CORS error (origen no permitido)
+
+================================================================================
+                      PASO 7: MONGODB SETUP
+================================================================================
+
+Si no tienes MongoDB corriendo localmente:
+
+OPCIÓN A: MongoDB Local (Windows)
+──────────────────────────────────
+1. Descargar MongoDB Community: https://www.mongodb.com/try/download/community
+2. Instalar
+3. MongoDB debería iniciar como servicio automáticamente
+4. Verificar: En PowerShell:
+   mongo --eval "db.version()"
+   (Debería mostrar versión)
+
+
+OPCIÓN B: MongoDB Atlas (Cloud)
+───────────────────────────────
+1. Crear cuenta en https://www.mongodb.com/cloud/atlas
+2. Crear cluster gratuito
+3. Copiar connection string
+4. Pegar en .env MONGO_URI:
+   MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/zentra_app
+
+
+OPCIÓN C: Docker (Recomendado para desarrollo)
+───────────────────────────────────────────────
+1. Instalar Docker Desktop: https://www.docker.com/products/docker-desktop
+2. Ejecutar:
+   docker run -d -p 27017:27017 --name mongodb mongo:latest
+3. MongoDB estará disponible en: mongodb://localhost:27017/zentra_app
+
+
+Verificar conexión:
+$ mongo mongodb://localhost:27017/zentra_app
+  db.version()  # Debería mostrar versión
+
+================================================================================
+                   PASO 8: ESTRUCTURA DE ARCHIVOS
+================================================================================
+
+Tu proyecto debe verse así:
+
+ZentraApp/
+├── .env                          ← Archivo de configuración (CRÍTICO)
+├── .env.example                  ← Ejemplo sin credenciales
+├── .gitignore                    ← Debe excluir .env
+├── package.json
+├── src/
+│   ├── config.js                 ← Lee JWT_SECRET de process.env
+│   ├── index.js
+│   ├── app.js                    ← Helmet, rate limiting, error handler
+│   ├── middlewares/
+│   │   ├── requireRole.js        ← NUEVO: Validación de roles
+│   │   ├── validateObjectId.js   ← NUEVO: Validación de IDs
+│   │   └── errorHandler.js       ← NUEVO: Error handler global
+│   ├── utils/
+│   │   └── stockOperations.js    ← NUEVO: Módulo de stock atómico
+│   ├── controllers/              ← Corregidos (error handling)
+│   ├── services/                 ← Corregidos (usa stockOperations)
+│   ├── models/                   ← Corregidos (campos duplicados)
+│   ├── routes/                   ← Con requireRole
+│   └── scripts/
+│       └── createSuperAdmin.js   ← Usa env variables
+├── client/
+│   ├── src/
+│   │   ├── api/axios.js          ← Con interceptor 401 y timeout
+│   │   ├── context/              ← 13 contexts con error handling
+│   │   ├── ProtectedRoute.jsx    ← Con validación de roles
+│   │   └── hooks/                ← Corregidos
+└── README.md                     ← Documentación
+
+================================================================================
+                        PASO 9: DEPLOY A PRODUCCIÓN
+================================================================================
+
+Antes de deployar:
+
+1. Cambiar NODE_ENV=production en .env
+2. Generar nuevo JWT_SECRET (no reutilizar el de desarrollo)
+3. Cambiar SUPER_ADMIN_USER y SUPER_ADMIN_PASS a credenciales seguras
+4. Cambiar FRONTEND_URL a dominio de producción
+5. Usar MONGO_URI de base de datos productiva (no desarrollo)
+6. Revisar CORS allowedOrigins (solo dominios de producción)
+
+En app.js, las siguientes configuraciones se activarán automáticamente:
+  - Cookies con secure: true (solo HTTPS)
+  - sameSite: "strict" (CSRF protection)
+  - Helmet con CSP estricto
+  - Error messages genéricos (sin detalles internos)
+
+Deployment (ejemplo en Heroku):
+1. git add .
+2. git commit -m "Prepare for production"
+3. git push heroku main
+4. heroku config:set JWT_SECRET=<tu_secreto>
+5. heroku config:set SUPER_ADMIN_USER=<tu_admin>
+6. heroku config:set SUPER_ADMIN_PASS=<tu_contraseña>
+7. heroku run npm run create-admin
+
+================================================================================
+                        PASO 10: MONITORING
+================================================================================
+
+Implementar estos servicios:
+
+1. Error Tracking (Sentry, Rollbar):
+   - Registra errors automáticamente
+   - Alertas en errores críticos
+
+2. Logging (Winston, Pino):
+   - Registra eventos en archivo
+   - Análisis histórico de problemas
+
+3. APM (New Relic, DataDog):
+   - Performance monitoring
+   - Detección de anomalías
+
+4. Backup de Base de Datos:
+   - Daily backups de MongoDB
+   - Tested restore procedures
+
+================================================================================
+                         TROUBLESHOOTING
+================================================================================
+
+Problema: "FATAL: JWT_SECRET environment variable is not set"
+Solución: Verificar que .env existe y tiene JWT_SECRET definido
+          node -p "process.env.JWT_SECRET" (debería mostrar el valor)
+
+
+Problema: "Cannot connect to MongoDB"
+Solución:
+  1. Verificar que MongoDB está corriendo (mongo --version)
+  2. Verificar MONGO_URI en .env es correcto
+  3. Si es Atlas, verificar IP está en whitelist
+  4. Verificar usuario/contraseña (si requiere auth)
+
+
+Problema: Frontend no conecta con backend
+Solución:
+  1. Verificar que backend está corriendo (port 5000)
+  2. Verificar FRONTEND_URL en .env es correcto
+  3. Verificar CORS allowedOrigins en src/app.js
+  4. Abrir DevTools (F12) → Network → ver qué error da
+
+
+Problema: "Superadmin created failed"
+Solución:
+  1. Verificar SUPER_ADMIN_USER y SUPER_ADMIN_PASS en .env
+  2. Ejecutar: npm run create-admin (puede ejecutarse múltiples veces)
+  3. Verificar en MongoDB que collection "users" existe
+
+
+Problema: Rate limiting bloquea requests legítimos
+Solución:
+  1. En desarrollo, bajar límites en src/app.js (windowMs, max)
+  2. En producción, ajustar según patrón de tráfico real
+  3. Implementar whitelist de IPs si es necesario
+
+
+Problema: Token expirado no redirige a /login
+Solución:
+  1. Verificar que Axios interceptor está en client/src/api/axios.js
+  2. Verificar que status de respuesta es exactamente 401
+  3. En DevTools → Network, ver status de requests fallidas
+
+================================================================================
+                         CHECKLIST FINAL
+================================================================================
+
+Pre-Launch:
+  ☐ .env creado con JWT_SECRET aleatorio seguro
+  ☐ SUPER_ADMIN_USER y SUPER_ADMIN_PASS cambiados
+  ☐ MongoDB está corriendo y accesible
+  ☐ npm install completado (backend y frontend)
+  ☐ npm run create-admin ejecutado correctamente
+  ☐ Backend inicia sin errores (npm start)
+  ☐ Frontend inicia sin errores (npm run dev)
+  ☐ Login con credenciales de admin funciona
+  ☐ Cambiar contraseña de admin completado
+  ☐ Tests de seguridad básicos pasados
+  ☐ CORS whitelist configurado correctamente
+  ☐ Rate limiting no bloquea requests legítimos
+
+Production:
+  ☐ NODE_ENV=production en .env
+  ☐ JWT_SECRET generado nuevo (no reutilizar desarrollo)
+  ☐ FRONTEND_URL apunta a dominio productivo
+  ☐ MONGO_URI apunta a base de datos productiva
+  ☐ Backup automático de MongoDB configurado
+  ☐ Error tracking (Sentry) configurado
+  ☐ Logging (Winston) configurado
+  ☐ SSL/HTTPS habilitado
+  ☐ Firewall configurado (puerto 5000 solo desde backend)
+  ☐ Monitoring y alerting activo
+  ☐ Documentación de runbooks actualizada
+
+================================================================================
+                       DOCUMENTACIÓN RELACIONADA
+================================================================================
+
+Para más información:
+
+1. DIAGNOSTICO_45_PROBLEMAS.txt
+   - Detalles completos de cada problema
+   - Soluciones implementadas
+   - Líneas de código afectadas
+
+2. RESUMEN_EJECUTIVO.txt
+   - Overview rápido de hallazgos
+   - Métricas de la solución
+   - Security post-solución
+
+3. API Documentation (por hacer):
+   - Swagger/OpenAPI spec
+   - Ejemplos de requests
+   - Códigos de error
+
+4. RBAC Documentation (por hacer):
+   - Descripción de roles
+   - Permisos por rol
+   - Ejemplos de uso
+
+================================================================================
+                            CONTACTO
+================================================================================
+
+Para preguntas sobre la auditoría o implementación:
+- Revisar código fuente comentado
+- Verificar commits en git
+- Contactar con el equipo de desarrollo
+
+================================================================================
+Documento actualizado: Junio 2026
+Versión: 1.0
+================================================================================

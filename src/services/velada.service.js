@@ -138,20 +138,60 @@ export const actualizarVeladaIndividual = async (veladaId, nuevosDatos) => {
 
   const nuevaCantidad = nuevosDatos.cantidad ?? velada.cantidad;
 
-  if (nuevaCantidad <= 0) {
+  if (nuevaCantidad == null || isNaN(nuevaCantidad) || nuevaCantidad <= 0) {
     throw new Error("Cantidad debe ser mayor a 0.");
   }
 
-  const veladaActualizada = await Velada.findByIdAndUpdate(
-    veladaId,
-    {
-      ...nuevosDatos,
-      cantidad: nuevaCantidad,
-    },
-    { new: true }
-  );
+  if (Number(nuevaCantidad) !== Number(velada.cantidad)) {
+    // Revertir el consumo original y volver a consumir FIFO con la nueva cantidad,
+    // para mantener consistentes salidas, kardex y cantidad_velada del producto
+    if (velada.lotes_veladas?.length) {
+      await revertirConsumoSalidas(Salida, velada.lotes_veladas);
+    }
 
-  return veladaActualizada;
+    let nuevosLotes;
+    try {
+      nuevosLotes = await consumirStockFIFO(
+        Salida,
+        velada.producto,
+        Number(nuevaCantidad),
+        velada.sede
+      );
+    } catch (error) {
+      // Restaurar el consumo original para no dejar el stock inconsistente
+      const restaurados = await consumirStockFIFO(
+        Salida,
+        velada.producto,
+        Number(velada.cantidad),
+        velada.sede
+      );
+      velada.lotes_veladas = restaurados;
+      await velada.save();
+      throw error;
+    }
+
+    velada.lotes_veladas = nuevosLotes;
+
+    const producto = await Product.findById(velada.producto);
+    if (producto) {
+      producto.cantidad_velada = Math.max(
+        0,
+        Number(producto.cantidad_velada || 0) -
+          Number(velada.cantidad) +
+          Number(nuevaCantidad)
+      );
+      await producto.save();
+    }
+  }
+
+  velada.cantidad = Number(nuevaCantidad);
+  if (nuevosDatos.responsable != null) velada.responsable = nuevosDatos.responsable;
+  if (nuevosDatos.observacion != null) velada.observacion = nuevosDatos.observacion;
+
+  const guardada = await velada.save();
+  await guardada.populate(["producto", "user"]);
+
+  return guardada;
 };
 
 export const eliminarLoteVeladasPorId = async (id_lote) => {

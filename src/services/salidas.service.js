@@ -164,17 +164,75 @@ export const eliminarLoteSalidasPorIdCompleto = async (id_lote) => {
   return { message: "Lote eliminado correctamente" };
 };
 
+const fechaVencimientoMinima = (lotes) =>
+  lotes
+    .map((l) => l.fecha_vencimiento)
+    .filter(Boolean)
+    .sort((a, b) => new Date(a) - new Date(b))[0] ?? null;
+
 export const actualizarSalidaIndividual = async (salidaId, datosActualizados) => {
   const salida = await Salidas.findById(salidaId);
   if (!salida) throw new Error("Salida no encontrada");
+
+  const tieneVentas = await Venta.exists({ "lotes_vendidos.salida_id": salidaId });
+  if (tieneVentas) {
+    throw new Error("No se puede actualizar la salida: tiene ventas asociadas.");
+  }
 
   if (salida.cantidad_disponible < salida.cantidad) {
     throw new Error("No se puede actualizar la salida porque ya fue parcialmente utilizada.");
   }
 
-  const userId = salida.user;
-  const sede = salida.sede;
+  const nuevaCantidad = datosActualizados.cantidad ?? salida.cantidad;
+  if (nuevaCantidad == null || isNaN(nuevaCantidad) || nuevaCantidad <= 0) {
+    throw new Error("Cantidad inválida para la salida.");
+  }
 
-  await eliminarSalidaPorId(salidaId);
-  return await crearSalidas(datosActualizados, userId, sede);
+  const productoNuevoId = datosActualizados.producto || salida.producto.toString();
+  const cambiaProducto = productoNuevoId !== salida.producto.toString();
+  const cambiaCantidad = nuevaCantidad !== salida.cantidad;
+
+  if (cambiaProducto || cambiaCantidad) {
+    // Revertir el consumo original en compras y volver a consumir FIFO,
+    // preservando _id e id_lote de la salida
+    await revertirConsumoCompras(Compra, salida.lotes_usados);
+
+    let nuevosLotes;
+    try {
+      nuevosLotes = await consumirStockComprasFIFO(Compra, productoNuevoId, nuevaCantidad, salida.sede);
+    } catch (error) {
+      // Restaurar el consumo original para no dejar el stock inconsistente
+      const restaurados = await consumirStockComprasFIFO(Compra, salida.producto, salida.cantidad, salida.sede);
+      salida.lotes_usados = restaurados;
+      salida.fecha_vencimiento_min = fechaVencimientoMinima(restaurados);
+      await salida.save();
+      throw error;
+    }
+
+    const productoAnterior = await Product.findById(salida.producto);
+    if (productoAnterior) {
+      productoAnterior.salidas = Math.max(0, productoAnterior.salidas - salida.cantidad);
+      await productoAnterior.save();
+    }
+
+    // Se relee para acumular sobre el valor ya actualizado cuando es el mismo producto
+    const productoNuevo = await Product.findById(productoNuevoId);
+    if (productoNuevo) {
+      productoNuevo.salidas = Math.max(0, productoNuevo.salidas + parseInt(nuevaCantidad));
+      await productoNuevo.save();
+    }
+
+    salida.producto = productoNuevoId;
+    salida.lotes_usados = nuevosLotes;
+    salida.fecha_vencimiento_min = fechaVencimientoMinima(nuevosLotes);
+  }
+
+  salida.cantidad = nuevaCantidad;
+  salida.cantidad_disponible = nuevaCantidad;
+  if (datosActualizados.motivo != null) salida.motivo = datosActualizados.motivo;
+
+  const guardada = await salida.save();
+  await guardada.populate(["producto", "user"]);
+
+  return { message: "Salida actualizada correctamente", salida: guardada };
 };

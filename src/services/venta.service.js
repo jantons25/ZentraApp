@@ -160,22 +160,59 @@ export const actualizarVentaIndividual = async (ventaId, nuevosDatos) => {
   const nuevaCantidad = nuevosDatos.cantidad ?? venta.cantidad;
   const nuevoPrecio = nuevosDatos.precio_venta ?? venta.precio_venta;
 
-  if (nuevaCantidad <= 0 || nuevoPrecio < 0) {
+  if (
+    nuevaCantidad == null || isNaN(nuevaCantidad) || nuevaCantidad <= 0 ||
+    nuevoPrecio == null || isNaN(nuevoPrecio) || nuevoPrecio < 0
+  ) {
     throw new Error("Cantidad y precio de venta deben ser valores válidos.");
   }
 
-  const ventaActualizada = await Venta.findByIdAndUpdate(
-    ventaId,
-    {
-      ...nuevosDatos,
-      cantidad: nuevaCantidad,
-      precio_venta: nuevoPrecio,
-      importe_venta: nuevaCantidad * nuevoPrecio,
-    },
-    { new: true }
-  );
+  if (nuevaCantidad !== venta.cantidad) {
+    if (venta.lotes_vendidos?.length) {
+      await revertirConsumoSalidas(Salida, venta.lotes_vendidos);
+    }
 
-  return ventaActualizada;
+    let nuevosLotes;
+    try {
+      nuevosLotes = await consumirStockFIFO(Salida, venta.producto, nuevaCantidad, venta.sede);
+    } catch (error) {
+      // Restaurar el consumo original para no dejar el stock inconsistente
+      const restaurados = await consumirStockFIFO(Salida, venta.producto, venta.cantidad, venta.sede);
+      venta.lotes_vendidos = restaurados.map((l) => ({
+        ...l,
+        margen_unitario: venta.precio_venta - l.precio_compra,
+      }));
+      await venta.save();
+      throw error;
+    }
+
+    venta.lotes_vendidos = nuevosLotes.map((l) => ({
+      ...l,
+      margen_unitario: nuevoPrecio - l.precio_compra,
+    }));
+
+    const producto = await Product.findById(venta.producto);
+    if (producto) {
+      producto.cantidad_vendida = Math.max(
+        0,
+        producto.cantidad_vendida - venta.cantidad + nuevaCantidad
+      );
+      await producto.save();
+    }
+  } else if (nuevoPrecio !== venta.precio_venta) {
+    venta.lotes_vendidos.forEach((l) => {
+      l.margen_unitario = nuevoPrecio - l.precio_compra;
+    });
+  }
+
+  venta.cantidad = nuevaCantidad;
+  venta.precio_venta = nuevoPrecio;
+  venta.importe_venta = nuevaCantidad * nuevoPrecio;
+  if (nuevosDatos.pago_registrado != null) venta.pago_registrado = nuevosDatos.pago_registrado;
+  if (nuevosDatos.habitacion != null) venta.habitacion = nuevosDatos.habitacion;
+
+  const ventaGuardada = await venta.save();
+  return ventaGuardada.populate(["producto", "user"]);
 };
 
 export const eliminarLoteVentasPorId = async (id_lote) => {
