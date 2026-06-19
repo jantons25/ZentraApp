@@ -12,7 +12,7 @@ export const obtenerSalidasPorUsuario = async (userId) => {
 };
 
 export const obtenerTodasLasSalidas = async (sede) => {
-  const query = sede ? { sede } : {};
+  const query = { sede };
   return await Salidas.find(query)
     .populate("user")
     .populate("producto")
@@ -84,7 +84,7 @@ export const crearSalidas = async (salidasInput, userId, sede) => {
 };
 
 export const actualizarLoteSalidas = async (ids, nuevasSalidas, userId, sede) => {
-  const salidasPrevias = await Salidas.find({ _id: { $in: ids } });
+  const salidasPrevias = await Salidas.find({ _id: { $in: ids }, sede });
   if (!salidasPrevias.length) throw new Error("No se encontraron salidas para actualizar.");
 
   for (const salida of salidasPrevias) {
@@ -93,12 +93,12 @@ export const actualizarLoteSalidas = async (ids, nuevasSalidas, userId, sede) =>
     if (salida.cantidad_disponible < salida.cantidad) throw new Error("No se puede actualizar: una salida ya fue parcialmente utilizada.");
   }
 
-  await eliminarLoteSalidasPorId(ids);
+  await eliminarLoteSalidasPorId(ids, sede);
   return await crearSalidas(nuevasSalidas, userId, sede);
 };
 
-export const eliminarSalidaPorId = async (salidaId) => {
-  const salida = await Salidas.findById(salidaId);
+export const eliminarSalidaPorId = async (salidaId, sede) => {
+  const salida = await Salidas.findOne({ _id: salidaId, sede });
   if (!salida) throw new Error("Salida no encontrada");
 
   const tieneVentas = await Venta.exists({ "lotes_vendidos.salida_id": salidaId });
@@ -118,8 +118,8 @@ export const eliminarSalidaPorId = async (salidaId) => {
   return { message: "Salida eliminada correctamente" };
 };
 
-export const eliminarLoteSalidasPorId = async (id) => {
-  const salidas = await Salidas.find({ _id: { $in: id } });
+export const eliminarLoteSalidasPorId = async (id, sede) => {
+  const salidas = await Salidas.find({ _id: { $in: id }, sede });
   if (!salidas.length) throw new Error("Lote no encontrado");
 
   for (const salida of salidas) {
@@ -141,8 +141,8 @@ export const eliminarLoteSalidasPorId = async (id) => {
   return { message: "Lote eliminado correctamente" };
 };
 
-export const eliminarLoteSalidasPorIdCompleto = async (id_lote) => {
-  const salidas = await Salidas.find({ id_lote });
+export const eliminarLoteSalidasPorIdCompleto = async (id_lote, sede) => {
+  const salidas = await Salidas.find({ id_lote, sede });
   if (!salidas.length) throw new Error("Lote no encontrado");
 
   for (const salida of salidas) {
@@ -170,8 +170,8 @@ const fechaVencimientoMinima = (lotes) =>
     .filter(Boolean)
     .sort((a, b) => new Date(a) - new Date(b))[0] ?? null;
 
-export const actualizarSalidaIndividual = async (salidaId, datosActualizados) => {
-  const salida = await Salidas.findById(salidaId);
+export const actualizarSalidaIndividual = async (salidaId, datosActualizados, sede) => {
+  const salida = await Salidas.findOne({ _id: salidaId, sede });
   if (!salida) throw new Error("Salida no encontrada");
 
   const tieneVentas = await Venta.exists({ "lotes_vendidos.salida_id": salidaId });

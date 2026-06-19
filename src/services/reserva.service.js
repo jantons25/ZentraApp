@@ -147,7 +147,7 @@ export const actualizarReserva = async (id, data, sede) => {
     // 1) Buscar la reserva actual
     const reservaActual = await Reserva.findById(id, null);
     if (!reservaActual) throw new Error("Reserva no encontrada.");
-    if (sede && reservaActual.sede && reservaActual.sede !== sede)
+    if (reservaActual.sede !== sede)
       throw new Error("No tienes acceso a esta reserva.");
 
     if (["cancelada", "finalizada"].includes(reservaActual.estado)) {
@@ -385,7 +385,7 @@ export const getReservas = async (opts = {}, sede) => {
     } = opts;
 
     const query = {};
-    if (sede) query.sede = sede;
+    query.sede = sede;
 
     // ✅ Filtros por rango de fechas usando inicio/fin (modelo nuevo)
     if (filtros.desde || filtros.hasta) {
@@ -473,7 +473,7 @@ export const getReservaById = async (id, sede) => {
     if (!reserva) {
       throw new Error("Reserva no encontrada.");
     }
-    if (sede && reserva.sede && reserva.sede !== sede)
+    if (reserva.sede !== sede)
       throw new Error("No tienes acceso a esta reserva.");
 
     // 2) Traer el detalle 1-1 asociado
@@ -499,7 +499,7 @@ export const eliminarReserva = async (id, usuarioId, motivo = "", sede) => {
     // 1) Buscar reserva
     const reserva = await Reserva.findById(id, null);
     if (!reserva) throw new Error("Reserva no encontrada.");
-    if (sede && reserva.sede && reserva.sede !== sede)
+    if (reserva.sede !== sede)
       throw new Error("No tienes acceso a esta reserva.");
 
     // 2) Validar estado actual

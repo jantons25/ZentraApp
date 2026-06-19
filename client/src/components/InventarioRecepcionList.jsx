@@ -6,6 +6,10 @@ function InventarioCentralList({ products, compras, ventas, user }) {
   const { deleteProduct } = useProduct();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const productosDeSede = user?.sede
+  ? products.filter((p) => p.sede === user.sede)
+  : products;
+
   const calcularImporteVentaTotal = (productId) => {
     const ventasDelProducto = ventas.filter(
       (venta) => venta.producto._id === productId
@@ -65,7 +69,7 @@ function InventarioCentralList({ products, compras, ventas, user }) {
           </thead>
 
           <tbody>
-            {products.map((product) => (
+            {productosDeSede.map((product) => (
               <tr
                 key={product._id}
                 className="border-b hover:bg-gray-50 transition duration-150"

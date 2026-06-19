@@ -175,6 +175,14 @@ export const updateUser = async (req, res) => {
   const { password, username, name, sede, status, role } = req.body;
 
   try {
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser)
+      return res.status(404).json({ message: "Usuario no encontrado" });
+
+    if (req.user.role === "admin" && targetUser.role === "superadmin") {
+      return res.status(403).json({ message: "No puedes modificar a un superadministrador" });
+    }
+
     const updateData = {};
 
     if (username !== undefined) updateData.username = username;
@@ -183,7 +191,12 @@ export const updateUser = async (req, res) => {
 
     if (req.user.role === "superadmin" || req.user.role === "admin") {
       if (status !== undefined) updateData.status = status;
-      if (role !== undefined) updateData.role = role;
+      if (role !== undefined) {
+        if (req.user.role === "admin" && role === "superadmin") {
+          return res.status(403).json({ message: "No puedes asignar el rol de superadministrador" });
+        }
+        updateData.role = role;
+      }
     }
 
     if (password && password.trim() !== "") {
@@ -193,9 +206,6 @@ export const updateUser = async (req, res) => {
     const user = await User.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
     }).select("-password");
-
-    if (!user)
-      return res.status(404).json({ message: "Usuario no encontrado" });
 
     res.json(user);
   } catch (error) {

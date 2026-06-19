@@ -104,13 +104,13 @@ function VentasList({
       }
       lotes[idLote].push(venta);
     });
-
     // 2. Convertir a array y ordenar por fecha del primer item (más reciente primero)
     const lotesArray = Object.entries(lotes)
       .map(([id_lote, ventas]) => ({
         id_lote,
         ventas,
         createdAt: ventas[0]?.createdAt || null,
+        user: ventas[0]?.user.name || "Sin usuario"
       }))
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -247,6 +247,7 @@ function VentasList({
           <thead className="bg-gray-100 text-xs uppercase text-gray-500 sticky top-0">
             <tr>
               <th className="px-6 py-3 text-center bg-gray-100">Fecha</th>
+              <th className="px-6 py-3 text-center bg-gray-100">Usuario</th>
               <th className="px-6 py-3 text-center bg-gray-100">
                 Producto
                 <input
@@ -294,6 +295,9 @@ function VentasList({
                     minute: "2-digit",
                     hour12: false,
                   })}
+                </td>
+                <td className="px-6 py-4 font-medium text-center">
+                  {lote.user}
                 </td>
                 <td className="px-6 py-4 font-medium">
                   {lote.ventas.slice(0, 3).map((venta, index) => {

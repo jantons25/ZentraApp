@@ -38,8 +38,8 @@ export async function consumirStockFIFO(Salida, productoId, cantidad, sede, sess
   const query = {
     producto: productoId,
     cantidad_disponible: { $gt: 0 },
+    sede,
   };
-  if (sede) query.sede = sede;
 
   const opts = session ? { session } : {};
   const salidasDisponibles = await Salida.find(query, null, opts)
@@ -111,8 +111,8 @@ export async function consumirStockComprasFIFO(Compra, productoId, cantidad, sed
   const query = {
     producto: productoId,
     cantidad_disponible: { $gt: 0 },
+    sede,
   };
-  if (sede) query.sede = sede;
 
   const opts = session ? { session } : {};
   const comprasDisponibles = await Compra.find(query, null, opts)

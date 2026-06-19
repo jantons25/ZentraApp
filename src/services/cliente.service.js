@@ -69,7 +69,7 @@ export const crearCliente = async (data, sede) => {
 export const getClientes = async ({ soloActivos = true, sede } = {}) => {
   try {
     const query = soloActivos ? { estado: "activo" } : {};
-    if (sede) query.sede = sede;
+    query.sede = sede;
     const clientes = await Cliente.find(query).sort({ nombre: 1 });
 
     return clientes; // si está vacío, devuelve []

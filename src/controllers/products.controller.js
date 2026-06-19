@@ -29,7 +29,7 @@ export const getProductos = async (req, res) => {
 export const getProductoPorId = async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await getProductById(id);
+    const product = await getProductById(id, req.user.sede);
     res.status(200).json(product);
   } catch (error) {
     console.error("Error getProductoPorId:", error.message);
@@ -40,7 +40,7 @@ export const getProductoPorId = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await updateProductById(id, req.body);
+    const product = await updateProductById(id, req.body, req.user.sede);
     res.status(200).json(product);
   } catch (error) {
     console.error("Error updateProduct:", error.message);
@@ -51,7 +51,7 @@ export const updateProduct = async (req, res) => {
 export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await deleteProductById(id);
+    const result = await deleteProductById(id, req.user.sede);
     res.status(200).json(result);
   } catch (error) {
     console.error("Error deleteProduct:", error.message);

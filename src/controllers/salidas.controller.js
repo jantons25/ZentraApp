@@ -46,7 +46,7 @@ export const createSalida = async (req, res) => {
 
 export const getSalida = async (req, res) => {
   try {
-    const salida = await Salidas.findById(req.params.id)
+    const salida = await Salidas.findOne({ _id: req.params.id, sede: req.user.sede })
       .populate("user")
       .populate("producto")
       .select("-__v");
@@ -60,7 +60,7 @@ export const getSalida = async (req, res) => {
 
 export const deleteSalida = async (req, res) => {
   try {
-    await eliminarSalidaPorId(req.params.id);
+    await eliminarSalidaPorId(req.params.id, req.user.sede);
     res.json({ message: "Salida eliminada correctamente" });
   } catch (error) {
     console.error("Error deleteSalida:", error.message);
@@ -70,7 +70,7 @@ export const deleteSalida = async (req, res) => {
 
 export const deleteLoteSalida = async (req, res) => {
   try {
-    const data = await eliminarLoteSalidasPorId(req.params.id_lote);
+    const data = await eliminarLoteSalidasPorId(req.params.id_lote, req.user.sede);
     res.status(200).json(data);
   } catch (error) {
     console.error("Error deleteLoteSalida:", error.message);
@@ -80,7 +80,7 @@ export const deleteLoteSalida = async (req, res) => {
 
 export const deleteLoteSalidaCompleta = async (req, res) => {
   try {
-    const data = await eliminarLoteSalidasPorIdCompleto(req.params.id_lote);
+    const data = await eliminarLoteSalidasPorIdCompleto(req.params.id_lote, req.user.sede);
     res.status(200).json(data);
   } catch (error) {
     console.error("Error deleteLoteSalidaCompleta:", error.message);
@@ -90,7 +90,7 @@ export const deleteLoteSalidaCompleta = async (req, res) => {
 
 export const updateSalida = async (req, res) => {
   try {
-    const salidaActualizada = await actualizarSalidaIndividual(req.params.id, req.body);
+    const salidaActualizada = await actualizarSalidaIndividual(req.params.id, req.body, req.user.sede);
     res.json(salidaActualizada);
   } catch (error) {
     console.error("Error updateSalida:", error.message);

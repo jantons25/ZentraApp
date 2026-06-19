@@ -44,6 +44,7 @@ function RegisterPage({ user, closeModal, refreshPagina }) {
         password: "", // usualmente no se rellena la contraseña
         name: user.name || "",
         role: user.role || "",
+        sede: user.sede || "",
       });
     } else {
       reset();
@@ -89,10 +90,27 @@ function RegisterPage({ user, closeModal, refreshPagina }) {
           </option>
           <option value="recepcionista">Recepcionista</option>
           <option value="admin">Administrador</option>
-          <option value="seguridad">Seguridad</option>
+          <option value="superadmin">Super</option>
         </select>
 
         {errors.role && (
+          <span className="text-red-500 w-full">Este campo es requerido</span>
+        )}
+        <select
+          name="sede"
+          {...register("sede", { required: true })}
+          className="w-full bg-gray-200 px-4 py-2 rounded-md my-2"
+          defaultValue=""
+        >
+          <option value="" disabled>
+            {" "}
+            Selecciona una sede
+          </option>
+          <option value="ZentraBalta">Zentra Balta</option>
+          <option value="ZentraSanJose">Zentra San José</option>
+          <option value="ZentraPlaza">Zentra Plaza</option>
+        </select>
+        {errors.sede && (
           <span className="text-red-500 w-full">Este campo es requerido</span>
         )}
         <input

@@ -31,7 +31,7 @@ export const createVelada = async (req, res) => {
 
 export const deleteVelada = async (req, res) => {
   try {
-    const resultado = await eliminarVeladaPorId(req.params.id);
+    const resultado = await eliminarVeladaPorId(req.params.id, req.user.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error deleteVelada:", error.message);
@@ -41,7 +41,7 @@ export const deleteVelada = async (req, res) => {
 
 export const deleteLoteVeladas = async (req, res) => {
   try {
-    const resultado = await eliminarLoteVeladasPorId(req.params.id_lote);
+    const resultado = await eliminarLoteVeladasPorId(req.params.id_lote, req.user.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error deleteLoteVeladas:", error.message);
@@ -51,7 +51,7 @@ export const deleteLoteVeladas = async (req, res) => {
 
 export const updateVelada = async (req, res) => {
   try {
-    const veladaActualizada = await actualizarVeladaIndividual(req.params.id, req.body);
+    const veladaActualizada = await actualizarVeladaIndividual(req.params.id, req.body, req.user.sede);
     res.json({ message: "Velada actualizada correctamente", velada: veladaActualizada });
   } catch (error) {
     console.error("Error updateVelada:", error.message);

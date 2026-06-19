@@ -100,6 +100,7 @@ function CortesiasList({ cortesias, products, closeModal, refreshPagina }) {
         id_lote,
         cortesias,
         createdAt: cortesias[0]?.createdAt || null,
+        user: cortesias[0]?.user.name || "Sin usuario"
       }))
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -226,6 +227,7 @@ function CortesiasList({ cortesias, products, closeModal, refreshPagina }) {
           <thead className="bg-gray-100 text-xs uppercase text-gray-500 sticky top-0">
             <tr>
               <th className="px-6 py-2 text-center bg-gray-100">Fecha</th>
+              <th className="px-6 py-2 text-center bg-gray-100">Usuario</th>
               <th className="px-6 py-2 text-center bg-gray-100">
                 Producto
                 <input
@@ -260,9 +262,10 @@ function CortesiasList({ cortesias, products, closeModal, refreshPagina }) {
                     hour12: false,
                   })}
                 </td>
-
-                {/* Producto(s) del lote */}
-                <td className="px-6 py-4 font-medium">
+                <td className="px-6 py-4 font-medium text-center">
+                  {lote.user}
+                </td>
+                <td className="px-6 py-4 text-center">
                   {lote.cortesias.slice(0, 3).map((c, index) => {
                     const productoId =
                       typeof c.producto === "string"

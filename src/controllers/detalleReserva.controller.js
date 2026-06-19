@@ -41,7 +41,6 @@ export const registrarPagoDetalleReserva = async (req, res) => {
       referencia,
       comprobante_url,
       fecha_pago,
-      sede
     } = req.body;
 
     if (!monto_pago || Number(monto_pago) <= 0) {
@@ -58,8 +57,8 @@ export const registrarPagoDetalleReserva = async (req, res) => {
       referencia,
       comprobante_url,
       fecha_pago,
-      sede,
-      registrado_por: req.user?.id || null, // mejor desde auth
+      sede: req.user.sede,
+      registrado_por: req.user?.id || null,
     });
 
     res.status(200).json(resultado);

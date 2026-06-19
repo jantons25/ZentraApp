@@ -54,7 +54,7 @@ export const actualizarLoteReposiciones = async (ids, nuevasReposiciones, userId
     throw new Error("Datos inválidos: se esperaban arrays.");
   }
 
-  const reposAntiguas = await Reposicion.find({ _id: { $in: ids } });
+  const reposAntiguas = await Reposicion.find({ _id: { $in: ids }, sede });
   if (!reposAntiguas.length) throw new Error("No se encontraron reposiciones para actualizar.");
 
   // Validar nuevas reposiciones antes de modificar nada
@@ -116,8 +116,8 @@ export const actualizarLoteReposiciones = async (ids, nuevasReposiciones, userId
   return { message: "Lote de reposiciones actualizado correctamente", reposiciones: reposCreadas };
 };
 
-export const eliminarReposicionPorId = async (reposicionId) => {
-  const reposicion = await Reposicion.findById(reposicionId);
+export const eliminarReposicionPorId = async (reposicionId, sede) => {
+  const reposicion = await Reposicion.findOne({ _id: reposicionId, sede });
   if (!reposicion) throw new Error("Reposición no encontrada");
 
   if (Array.isArray(reposicion.lotes_repuestos)) {
@@ -134,8 +134,8 @@ export const eliminarReposicionPorId = async (reposicionId) => {
   return { message: "Reposición eliminada correctamente" };
 };
 
-export const actualizarReposicionIndividual = async (reposicionId, nuevosDatos) => {
-  const reposicion = await Reposicion.findById(reposicionId);
+export const actualizarReposicionIndividual = async (reposicionId, nuevosDatos, sede) => {
+  const reposicion = await Reposicion.findOne({ _id: reposicionId, sede });
   if (!reposicion) throw new Error("Reposición no encontrada");
 
   const nuevaCantidad = nuevosDatos.cantidad ?? reposicion.cantidad;
@@ -197,8 +197,8 @@ export const actualizarReposicionIndividual = async (reposicionId, nuevosDatos) 
   return guardada;
 };
 
-export const eliminarLoteReposicionesPorId = async (id_lote) => {
-  const reposiciones = await Reposicion.find({ id_lote });
+export const eliminarLoteReposicionesPorId = async (id_lote, sede) => {
+  const reposiciones = await Reposicion.find({ id_lote, sede });
   if (!reposiciones.length) throw new Error("Lote no encontrado");
 
   for (const reposicion of reposiciones) {

@@ -44,6 +44,7 @@ function UsersList({ closeModal, refreshPagina, vistaActiva, users }) {
             <tr>
               <th className="px-6 py-3">Nombre</th>
               <th className="px-6 py-3">Usuario</th>
+              <th className="px-6 py-3">Sede</th>
               <th className="px-6 py-3">Rol</th>
               <th className="px-6 py-3">Status</th>
               <th className="px-6 py-3">Acciones</th>
@@ -60,6 +61,7 @@ function UsersList({ closeModal, refreshPagina, vistaActiva, users }) {
                 >
                   <td className="px-6 py-4 font-medium">{user.name}</td>
                   <td className="px-6 py-4">{user.username}</td>
+                  <td className="px-6 py-4">{user.sede}</td>
                   <td className="px-6 py-4">{user.role}</td>
                   <td className="px-6 py-4">{user.status}</td>
 

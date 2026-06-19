@@ -53,7 +53,7 @@ export const actualizarLoteVeladas = async (ids, nuevasVeladas, userId, sede) =>
     throw new Error("Datos inválidos: se esperaban arrays.");
   }
 
-  const veladasAntiguas = await Velada.find({ _id: { $in: ids } });
+  const veladasAntiguas = await Velada.find({ _id: { $in: ids }, sede });
   if (!veladasAntiguas.length) throw new Error("No se encontraron veladas para actualizar.");
 
   // Validar nuevas veladas antes de modificar nada
@@ -114,8 +114,8 @@ export const actualizarLoteVeladas = async (ids, nuevasVeladas, userId, sede) =>
   return { message: "Lote de veladas actualizado correctamente", veladas: veladasCreadas };
 };
 
-export const eliminarVeladaPorId = async (veladaId) => {
-  const velada = await Velada.findById(veladaId);
+export const eliminarVeladaPorId = async (veladaId, sede) => {
+  const velada = await Velada.findOne({ _id: veladaId, sede });
   if (!velada) throw new Error("Velada no encontrada");
 
   if (Array.isArray(velada.lotes_veladas)) {
@@ -132,8 +132,8 @@ export const eliminarVeladaPorId = async (veladaId) => {
   return { message: "Velada eliminada correctamente" };
 };
 
-export const actualizarVeladaIndividual = async (veladaId, nuevosDatos) => {
-  const velada = await Velada.findById(veladaId);
+export const actualizarVeladaIndividual = async (veladaId, nuevosDatos, sede) => {
+  const velada = await Velada.findOne({ _id: veladaId, sede });
   if (!velada) throw new Error("Velada no encontrada");
 
   const nuevaCantidad = nuevosDatos.cantidad ?? velada.cantidad;
@@ -194,8 +194,8 @@ export const actualizarVeladaIndividual = async (veladaId, nuevosDatos) => {
   return guardada;
 };
 
-export const eliminarLoteVeladasPorId = async (id_lote) => {
-  const veladas = await Velada.find({ id_lote });
+export const eliminarLoteVeladasPorId = async (id_lote, sede) => {
+  const veladas = await Velada.find({ id_lote, sede });
   if (!veladas.length) throw new Error("Lote de veladas no encontrado");
 
   for (const velada of veladas) {

@@ -80,13 +80,13 @@ function ComprasList({ compras, closeModal, refreshPagina, products }) {
       const idLote = compra.id_lote ?? "sin-lote";
       if (!lotes[idLote]) lotes[idLote] = [];
       lotes[idLote].push(compra);
-    });
-
+    }); 
     return Object.entries(lotes)
       .map(([id_lote, compras]) => ({
         id_lote,
         compras,
         createdAt: compras[0]?.createdAt || null,
+        user: compras[0]?.user.name || "Sin usuario"
       }))
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   };
@@ -201,6 +201,7 @@ function ComprasList({ compras, closeModal, refreshPagina, products }) {
           <thead className="bg-gray-100 text-xs uppercase text-gray-500 sticky top-0">
             <tr>
               <th className="px-6 py-3 text-center bg-gray-100">Fecha</th>
+              <th className="px-6 py-3 text-center bg-gray-100">Usuario</th>
               <th className="px-6 py-3 text-center bg-gray-100">
                 Producto
                 <input
@@ -241,7 +242,11 @@ function ComprasList({ compras, closeModal, refreshPagina, products }) {
                   })}
                 </td>
 
-                <td className="px-6 py-4 font-medium">
+                <td className="px-6 py-4 text-center">
+                  {lote.user}
+                </td>
+
+                <td className="px-6 py-4 text-center">
                   {lote.compras.slice(0, 3).map((c, i) => (
                     <div key={i}>{c.producto?.nombre || "-"}</div>
                   ))}

@@ -31,7 +31,7 @@ export const createCortesia = async (req, res) => {
 
 export const deleteCortesia = async (req, res) => {
   try {
-    const resultado = await eliminarCortesiaPorId(req.params.id);
+    const resultado = await eliminarCortesiaPorId(req.params.id, req.user.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error deleteCortesia:", error.message);
@@ -41,7 +41,7 @@ export const deleteCortesia = async (req, res) => {
 
 export const deleteLoteCortesias = async (req, res) => {
   try {
-    const resultado = await eliminarLoteCortesiasPorId(req.params.id_lote);
+    const resultado = await eliminarLoteCortesiasPorId(req.params.id_lote, req.user.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error deleteLoteCortesias:", error.message);
@@ -51,7 +51,7 @@ export const deleteLoteCortesias = async (req, res) => {
 
 export const updateCortesia = async (req, res) => {
   try {
-    const cortesiaActualizada = await actualizarCortesiaIndividual(req.params.id, req.body);
+    const cortesiaActualizada = await actualizarCortesiaIndividual(req.params.id, req.body, req.user.sede);
     res.json({ message: "Cortesía actualizada correctamente", cortesia: cortesiaActualizada });
   } catch (error) {
     console.error("Error updateCortesia:", error.message);

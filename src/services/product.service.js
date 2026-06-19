@@ -2,7 +2,7 @@ import Product from "../models/product.model.js";
 import Compra from "../models/compra.model.js";
 
 export const getProducts = async (sede) => {
-  const query = sede ? { sede } : {};
+  const query = { sede };
   const products = await Product.find(query).sort({ nombre: 1 }).populate("user");
 
   if (!products.length) {
@@ -39,16 +39,16 @@ export const createProduct = async (data, userId, sede) => {
   return { message: "Producto creado correctamente.", product: saved };
 };
 
-export const getProductById = async (id) => {
-  const producto = await Product.findById(id);
+export const getProductById = async (id, sede) => {
+  const producto = await Product.findOne({ _id: id, sede });
   if (!producto) {
     throw new Error("Producto no encontrado.");
   }
   return producto;
 };
 
-export const deleteProductById = async (id) => {
-  const producto = await Product.findById(id);
+export const deleteProductById = async (id, sede) => {
+  const producto = await Product.findOne({ _id: id, sede });
   if (!producto) {
     throw new Error("Producto no encontrado.");
   }
@@ -64,8 +64,8 @@ export const deleteProductById = async (id) => {
   return { message: "Producto eliminado correctamente." };
 };
 
-export const updateProductById = async (id, data) => {
-  const producto = await Product.findById(id);
+export const updateProductById = async (id, data, sede) => {
+  const producto = await Product.findOne({ _id: id, sede });
   if (!producto) {
     throw new Error("Producto no encontrado.");
   }

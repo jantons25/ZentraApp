@@ -272,7 +272,7 @@ function ComprasVariasFormPage({
         <div className="w-30 flex justify-center items-end">
           <button
             type="submit"
-            className="bg-[#b9bc31]  text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2"
+            className="bg-[#b9bc31]  text-zinc-800 px-4 py-2 rounded-md hover:bg-yellow-300 hover:text-black my-2 cursor-pointer"
           >
             Agregar
           </button>
@@ -463,7 +463,7 @@ function ComprasVariasFormPage({
               type="submit"
               onClick={handleGuardarCompras}
               disabled={isSubmitting || editIndex !== null}
-              className={`px-4 py-2 rounded-md my-2 text-zinc-800
+              className={`px-4 py-2 rounded-md my-2 text-zinc-800 cursor-pointer
         ${
           isSubmitting || editIndex !== null
             ? "bg-gray-400 cursor-not-allowed opacity-60"

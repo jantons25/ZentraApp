@@ -19,7 +19,7 @@ export const createEspacio = async (data) => {
 
     const nuevoEspacio = new Espacio({
       nombre,
-      sede: normText(data.sede) || "Nexus Cowork",
+      sede: normText(data.sede) || "",
       piso: data.piso ?? null,
 
       tipo: data.tipo || "oficina",
@@ -54,7 +54,7 @@ export const createEspacio = async (data) => {
 export const getEspacios = async ({ soloActivos = false, sede } = {}) => {
   try {
     const query = soloActivos ? { estado: "activo" } : {};
-    if (sede) query.sede = sede;
+    query.sede = sede;
     const espacios = await Espacio.find(query).sort({ nombre: 1 });
     return espacios; // devuelve []
   } catch (error) {
@@ -98,7 +98,7 @@ export const updateEspacio = async (id, data) => {
 
     if (data.nombre !== undefined) patch.nombre = normText(data.nombre);
     if (data.sede !== undefined)
-      patch.sede = normText(data.sede) || "Nexus Cowork";
+      patch.sede = normText(data.sede) || "";
     if (data.piso !== undefined) patch.piso = data.piso ?? null;
 
     if (data.tipo !== undefined) patch.tipo = data.tipo;

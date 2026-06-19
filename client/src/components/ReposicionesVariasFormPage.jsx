@@ -19,6 +19,7 @@ function ReposicionesVariasFormPage({
   const { createReposicion, updateLoteReposicion, updateReposicion } =
     useReposicion();
   const [reposicionesTemporales, setReposicionesTemporales] = useState([]);
+  const [textBoton, setTextBoton] = useState("Reponer");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [productosSinStockRecepcion, setProductosSinStockRecepcion] = useState(
     []

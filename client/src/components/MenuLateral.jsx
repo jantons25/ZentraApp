@@ -1,5 +1,5 @@
 import VentaIcon from "../assets/carro.png";
-import OperacionesIcon from "../assets/configuraciones.png"
+import OperacionesIcon from "../assets/configuraciones.png";
 import InventarioIcon from "../assets/lista.png";
 import SalirIcon from "../assets/cerrar-sesion.png";
 import AdminIcon from "../assets/gerente.png";
@@ -8,19 +8,31 @@ import ReservaIcon from "../assets/reserva.png";
 import "../css/sidebarMenu.css";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ModalConfirmacion from "./ModalConfirmacion.jsx";
 
 function MenuLateral({ user, pagina }) {
   const { logout } = useAuth();
   const [mostrarModalLogout, setMostrarModalLogout] = useState(false);
+  const [sede, setSede] = useState("Zentra Hotel");
 
   const handleConfirmLogout = () => {
     logout();
     setMostrarModalLogout(false);
   };
 
-  const getItemClass = (nombrePagina) => `sidebar__item ${pagina === nombrePagina ? "sidebar__item--active" : ""}`;
+  useEffect(() => {
+    if (user?.sede.includes("Plaza")) {
+      setSede("Zentra Plaza");
+    } else if (user?.sede.includes("Balta")) {
+      setSede("Zentra Balta");
+    } else if (user?.sede.includes("SanJose")) {
+      setSede("Zentra San José");
+    }
+  }, [user?.sede]);
+
+  const getItemClass = (nombrePagina) =>
+    `sidebar__item ${pagina === nombrePagina ? "sidebar__item--active" : ""}`;
 
   return (
     <aside className="sidebar">
@@ -28,9 +40,7 @@ function MenuLateral({ user, pagina }) {
         <Link to="/" className="sidebar__item">
           <img src={LogoIcon} alt="" className="sidebar__logo" />
           <div className="sidebar__hide">
-            <p className="sidebar__text font-bold">{
-                user.sede.includes("Plaza") ? "Zentra Plaza" : "Zentra Hotel"
-              }</p>
+            <p className="sidebar__text font-bold">{sede}</p>
           </div>
         </Link>
         <Link to="/inventario" className={getItemClass("Inventario")}>
@@ -57,18 +67,17 @@ function MenuLateral({ user, pagina }) {
             <p className="sidebar__text">Reservas</p>
           </div>
         </Link> */}
-        {user?.role === "admin" ||
-          (user?.role === "superadmin" && (
-            <Link
-              to="/administracion"
-              className={getItemClass("Administracion")}
-            >
-              <img src={AdminIcon} alt="" className="sidebar__icon" />
-              <div className="sidebar__hide">
-                <p className="sidebar__text">Adminis.</p>
-              </div>
-            </Link>
-          ))}
+        {(user?.role === "admin" || user?.role === "superadmin") && (
+          <Link
+            to="/administracion"
+            className={getItemClass("Administracion")}
+          >
+            <img src={AdminIcon} alt="" className="sidebar__icon" />
+            <div className="sidebar__hide">
+              <p className="sidebar__text">Adminis.</p>
+            </div>
+          </Link>
+        )}
 
         <button
           type="button"

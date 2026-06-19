@@ -88,6 +88,7 @@ function SalidasList({ salidas, products, closeModal, refreshPagina }) {
         id_lote,
         salidas,
         createdAt: salidas[0]?.createdAt || null,
+        user: salidas[0]?.user.name || "Sin usuario"
       }))
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }
@@ -226,7 +227,7 @@ function SalidasList({ salidas, products, closeModal, refreshPagina }) {
           <thead className="bg-gray-100 text-xs uppercase text-gray-500 sticky top-0">
             <tr>
               <th className="px-6 py-2 text-center bg-gray-100">Fecha</th>
-
+              <th className="px-6 py-2 text-center bg-gray-100">Usuario</th>
               <th className="px-6 py-2 text-center bg-gray-100">
                 Producto
                 <input
@@ -261,8 +262,10 @@ function SalidasList({ salidas, products, closeModal, refreshPagina }) {
                     hour12: false,
                   })}
                 </td>
-
-                <td className="px-6 py-4 font-medium">
+                <td className="px-6 py-4 font-medium text-center">
+                  {lote.user}
+                </td>
+                <td className="px-6 py-4 text-center">
                   {lote.salidas.slice(0, 3).map((salida, index) => {
                     const productId =
                       typeof salida.producto === "string"
@@ -291,9 +294,6 @@ function SalidasList({ salidas, products, closeModal, refreshPagina }) {
                 </td>
 
                 <td className="px-6 py-4 flex gap-2 justify-center">
-                  {
-                    console.log(lote.salidas)
-                  }
                   <button
                     onClick={() => {
                       setSelectedSalida(lote);

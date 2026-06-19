@@ -25,6 +25,6 @@ router.post("/logout", logout);
 router.get("/verify", verifyTokenRequest);
 router.get("/profile", authRequired, profile);
 router.delete("/users/:id", authRequired, requireRole("admin", "superadmin"), validateObjectId(), deleteUser);
-router.put("/users/:id", authRequired, validateObjectId(), updateUser);
+router.put("/users/:id", authRequired, requireRole("admin", "superadmin"), validateObjectId(), updateUser);
 
 export default router;

@@ -53,7 +53,7 @@ export const actualizarLoteCortesias = async (ids, nuevasCortesias, userId, sede
     throw new Error("Datos inválidos: se esperaban arrays.");
   }
 
-  const cortesiasAntiguas = await Cortesia.find({ _id: { $in: ids } });
+  const cortesiasAntiguas = await Cortesia.find({ _id: { $in: ids }, sede });
   if (!cortesiasAntiguas.length) throw new Error("No se encontraron cortesías para actualizar.");
 
   // Validar nuevas cortesías antes de modificar nada
@@ -114,8 +114,8 @@ export const actualizarLoteCortesias = async (ids, nuevasCortesias, userId, sede
   return { message: "Lote de cortesías actualizado correctamente", cortesias: cortesiasCreadas };
 };
 
-export const eliminarCortesiaPorId = async (cortesiaId) => {
-  const cortesia = await Cortesia.findById(cortesiaId);
+export const eliminarCortesiaPorId = async (cortesiaId, sede) => {
+  const cortesia = await Cortesia.findOne({ _id: cortesiaId, sede });
   if (!cortesia) throw new Error("Cortesía no encontrada");
 
   if (Array.isArray(cortesia.lotes_cortesias)) {
@@ -132,8 +132,8 @@ export const eliminarCortesiaPorId = async (cortesiaId) => {
   return { message: "Cortesía eliminada correctamente" };
 };
 
-export const actualizarCortesiaIndividual = async (cortesiaId, nuevosDatos) => {
-  const cortesia = await Cortesia.findById(cortesiaId);
+export const actualizarCortesiaIndividual = async (cortesiaId, nuevosDatos, sede) => {
+  const cortesia = await Cortesia.findOne({ _id: cortesiaId, sede });
   if (!cortesia) throw new Error("Cortesía no encontrada");
 
   const nuevaCantidad = nuevosDatos.cantidad ?? cortesia.cantidad;
@@ -194,8 +194,8 @@ export const actualizarCortesiaIndividual = async (cortesiaId, nuevosDatos) => {
   return guardada;
 };
 
-export const eliminarLoteCortesiasPorId = async (id_lote) => {
-  const cortesias = await Cortesia.find({ id_lote });
+export const eliminarLoteCortesiasPorId = async (id_lote, sede) => {
+  const cortesias = await Cortesia.find({ id_lote, sede });
   if (!cortesias.length) throw new Error("Lote de cortesías no encontrado");
 
   for (const cortesia of cortesias) {

@@ -47,7 +47,7 @@ export const actualizarLoteCompras = async (ids, nuevasCompras, userId, sede) =>
     throw new Error("Datos inválidos: se esperaban arrays.");
   }
 
-  const comprasPrevias = await Compra.find({ _id: { $in: ids } });
+  const comprasPrevias = await Compra.find({ _id: { $in: ids }, sede });
   if (!comprasPrevias.length) throw new Error("No se encontraron compras para actualizar.");
 
   for (const c of comprasPrevias) {
@@ -103,8 +103,8 @@ export const actualizarLoteCompras = async (ids, nuevasCompras, userId, sede) =>
   return { message: "Lote actualizado correctamente", compras: comprasActualizadas };
 };
 
-export const eliminarCompraPorId = async (compraId) => {
-  const compra = await Compra.findById(compraId);
+export const eliminarCompraPorId = async (compraId, sede) => {
+  const compra = await Compra.findOne({ _id: compraId, sede });
   if (!compra) throw new Error("Compra no encontrada");
 
   const producto = await Product.findById(compra.producto);
@@ -147,8 +147,8 @@ export const eliminarLoteComprasPorId = async (id_lote, sede) => {
   return { message: "Lote eliminado correctamente" };
 };
 
-export const actualizarCompraIndividual = async (compraId, nuevosDatos) => {
-  const compra = await Compra.findById(compraId);
+export const actualizarCompraIndividual = async (compraId, nuevosDatos, sede) => {
+  const compra = await Compra.findOne({ _id: compraId, sede });
   if (!compra) throw new Error("Compra no encontrada");
 
   const nuevaCantidad = nuevosDatos.cantidad ?? compra.cantidad;

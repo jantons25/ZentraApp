@@ -45,7 +45,7 @@ export const createRelevo = async (req, res) => {
 export const getRelevo = async (req, res) => {
   try {
     const { id } = req.params;
-    const relevo = await Relevo.findById(id).populate('user');
+    const relevo = await Relevo.findOne({ _id: id, sede: req.user.sede }).populate('user');
     if (!relevo) return res.status(404).json({ message: 'Relevo no encontrado' });
     res.json(relevo);
   } catch (error) {
@@ -56,7 +56,7 @@ export const getRelevo = async (req, res) => {
 export const deleteRelevo = async (req, res) => {
   try {
     const { id } = req.params;
-    const relevo = await Relevo.findByIdAndDelete(id);
+    const relevo = await Relevo.findOneAndDelete({ _id: id, sede: req.user.sede });
     if (!relevo) return res.status(404).json({ message: 'Relevo no encontrado' });
     res.json({ message: 'Relevo eliminado' });
   } catch (error) {
@@ -68,8 +68,8 @@ export const updateRelevo = async (req, res) => {
   try {
     const { id } = req.params;
     const { responsable, recepcionista, observacion, conformidad } = req.body;
-    const relevo = await Relevo.findByIdAndUpdate(
-      id,
+    const relevo = await Relevo.findOneAndUpdate(
+      { _id: id, sede: req.user.sede },
       { responsable, recepcionista, observacion, conformidad },
       { new: true }
     );

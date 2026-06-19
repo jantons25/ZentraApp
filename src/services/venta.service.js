@@ -64,7 +64,7 @@ export const actualizarLoteVentas = async (ids, nuevasVentas, userId, sede) => {
     throw new Error("Datos inválidos: se esperaban arrays.");
   }
 
-  const ventasAntiguas = await Venta.find({ _id: { $in: ids } });
+  const ventasAntiguas = await Venta.find({ _id: { $in: ids }, sede });
   if (!ventasAntiguas.length) throw new Error("No se encontraron ventas para actualizar.");
 
   // Validar nuevas ventas antes de modificar nada (evita estado inconsistente)
@@ -135,8 +135,8 @@ export const actualizarLoteVentas = async (ids, nuevasVentas, userId, sede) => {
   return { message: "Lote actualizado correctamente", ventas: ventasCreadas };
 };
 
-export const eliminarVentaPorId = async (ventaId) => {
-  const venta = await Venta.findById(ventaId);
+export const eliminarVentaPorId = async (ventaId, sede) => {
+  const venta = await Venta.findOne({ _id: ventaId, sede });
   if (!venta) throw new Error("Venta no encontrada");
 
   if (Array.isArray(venta.lotes_vendidos)) {
@@ -153,8 +153,8 @@ export const eliminarVentaPorId = async (ventaId) => {
   return { message: "Venta eliminada correctamente" };
 };
 
-export const actualizarVentaIndividual = async (ventaId, nuevosDatos) => {
-  const venta = await Venta.findById(ventaId);
+export const actualizarVentaIndividual = async (ventaId, nuevosDatos, sede) => {
+  const venta = await Venta.findOne({ _id: ventaId, sede });
   if (!venta) throw new Error("Venta no encontrada");
 
   const nuevaCantidad = nuevosDatos.cantidad ?? venta.cantidad;
@@ -215,8 +215,8 @@ export const actualizarVentaIndividual = async (ventaId, nuevosDatos) => {
   return ventaGuardada.populate(["producto", "user"]);
 };
 
-export const eliminarLoteVentasPorId = async (id_lote) => {
-  const ventas = await Venta.find({ id_lote });
+export const eliminarLoteVentasPorId = async (id_lote, sede) => {
+  const ventas = await Venta.find({ id_lote, sede });
   if (!ventas.length) throw new Error("Lote no encontrado");
 
   for (const venta of ventas) {

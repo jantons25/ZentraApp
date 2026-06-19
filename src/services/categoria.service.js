@@ -35,7 +35,7 @@ export const crearCategoria = async (data, sede) => {
 export const getCategorias = async (sede) => {
   try {
     // 1. Obtener categorías filtradas por sede
-    const query = sede ? { sede } : {};
+    const query = { sede };
     const categorias = await Categoria.find(query).sort({ nombre: 1 });
 
     // 2. Verificar si se encontraron categorías
