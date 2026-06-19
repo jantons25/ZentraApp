@@ -1,32 +1,7 @@
 .recepcion-data{
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: start;
     height: 90%;
-    h1{
-        padding-bottom: 8px;
-        margin-bottom: 24px;
-        border-bottom: 5px solid var(--color-primary);
-        max-width: fit-content;
-    }
 }
 
 .recepcion-data .container{
     padding: 24px;
-}
-
-.recepcion-data .container .datos__rapidos{
-    display: flex;
-    flex-direction: row;
-    margin-left: 10px;
-    gap: 20px;
-}
-
-.recepcion-data .container .datos__graficos{
-    display: flex;
-    flex-direction: row;
-    margin-top: 20px;
-    gap: 20px;
-    margin-left: 10px;
 }

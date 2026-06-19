@@ -1,6 +1,6 @@
 import MenuIcon from "../assets/anadir.png";
 
-function OptAgregarVenta({ onClick }) {
+function OptAgregar({ onClick }) {
   return (
     <li className="menu__agregar__item" onClick={onClick}>
       <img src={MenuIcon} alt="" className="menu__agregar__icon" />
@@ -11,4 +11,4 @@ function OptAgregarVenta({ onClick }) {
   );
 }
 
-export default OptAgregarVenta;
+export default OptAgregar;

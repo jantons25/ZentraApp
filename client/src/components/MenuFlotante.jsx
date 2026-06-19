@@ -13,6 +13,7 @@ function MenuFlotante({
   opt6,
   opt7,
   opt8,
+  opt9,
   pagina,
   vistaActiva,
   btn1,
@@ -39,7 +40,7 @@ function MenuFlotante({
         </div>
       </aside>
       <div className="menu__flotante__body flex flex-row gap-3">
-        {opt2 || opt3 || opt4 || opt5 || opt6 || opt7 || opt8 ? (
+        {opt2 || opt3 || opt4 || opt5 || opt6 || opt7 || opt8 || opt9 ? (
           <aside className="menu__flotante flex justify-between">
             <ul className="menu__flotante__list">
               {opt2}
@@ -49,6 +50,7 @@ function MenuFlotante({
               {opt6}
               {opt7}
               {opt8}
+              {opt9}
             </ul>
           </aside>
         ) : null}

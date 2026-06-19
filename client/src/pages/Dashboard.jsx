@@ -32,13 +32,18 @@ const Dashboard = () => {
   });
 
   // Función para filtrar registros del día actual
+  // Usa getFullYear/getMonth/getDate (hora local del navegador) en lugar de
+  // toISOString() (UTC) para evitar el desfase de UTC-5 que desplazaba
+  // los registros nocturnos al día siguiente.
   const filtrarHoy = (registros) => {
-    const hoy = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    const hoy = new Date();
     return registros.filter((registro) => {
-      const fechaRegistro = new Date(registro.createdAt)
-        .toISOString()
-        .split("T")[0];
-      return fechaRegistro === hoy;
+      const fechaRegistro = new Date(registro.createdAt);
+      return (
+        fechaRegistro.getFullYear() === hoy.getFullYear() &&
+        fechaRegistro.getMonth()    === hoy.getMonth()    &&
+        fechaRegistro.getDate()     === hoy.getDate()
+      );
     });
   };
 
@@ -115,20 +120,20 @@ const Dashboard = () => {
       icon: FaShoppingCart,
       color: "green",
     },
-    {
-      title: "Compras",
-      value: `S/${stats.comprasHoy.total.toFixed(2)}`,
-      subtitle: `${stats.comprasHoy.cantidad} productos`,
-      icon: FaBoxOpen,
-      color: "orange",
-    },
-    {
-      title: "Ingresos Netos",
-      value: `S/${ingresosNetos.toFixed(2)}`,
-      subtitle: ingresosNetos >= 0 ? "Ganancia del día" : "Pérdida del día",
-      icon: MdAttachMoney,
-      color: ingresosNetos >= 0 ? "green" : "red",
-    },
+    // {
+    //   title: "Compras",
+    //   value: `S/${stats.comprasHoy.total.toFixed(2)}`,
+    //   subtitle: `${stats.comprasHoy.cantidad} productos`,
+    //   icon: FaBoxOpen,
+    //   color: "orange",
+    // },
+    // {
+    //   title: "Ingresos Netos",
+    //   value: `S/${ingresosNetos.toFixed(2)}`,
+    //   subtitle: ingresosNetos >= 0 ? "Ganancia del día" : "Pérdida del día",
+    //   icon: MdAttachMoney,
+    //   color: ingresosNetos >= 0 ? "green" : "red",
+    // },
     {
       title: "Salidas a Recepción",
       value: `${stats.salidasHoy.total} unid.`,
@@ -161,7 +166,7 @@ const Dashboard = () => {
     stats.cortesiasHoy.cantidad;
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-50">
       {/* Encabezado */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-800">Dashboard Hotel</h1>
@@ -179,41 +184,44 @@ const Dashboard = () => {
       </div>
 
       {/* Resumen rápido */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Movimientos Hoy</p>
-              <p className="text-2xl font-bold text-gray-800">
-                {totalMovimientos}
-              </p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-[#b9bc31] p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col min-h-[160px]">
+          <div className="flex items-start justify-between mb-4">
+            <p className="text-sm font-medium text-white">Items Vendidos Hoy</p>
+            <div className="p-2.5 rounded-full bg-blue-50 text-blue-500 flex-shrink-0 ml-3 border border-blue-100">
+              <FaChartLine className="h-4 w-4" />
             </div>
-            <FaChartLine className="h-8 w-8 text-blue-500" />
           </div>
+          <p className="text-4xl font-bold text-white tracking-tight leading-none">
+            {totalMovimientos}
+          </p>
+          <p className="text-xs text-white mt-auto pt-4">Movimientos totales del día</p>
         </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Ingresos Brutos</p>
-              <p className="text-2xl font-bold text-green-600">
-                S/{stats.ventasHoy.total.toFixed(2)}
-              </p>
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col min-h-[160px]">
+          <div className="flex items-start justify-between mb-4">
+            <p className="text-sm font-medium text-gray-500">Ingresos Brutos</p>
+            <div className="p-2.5 rounded-full bg-green-50 text-green-500 flex-shrink-0 ml-3 border border-green-100">
+              <MdAttachMoney className="h-4 w-4" />
             </div>
-            <MdAttachMoney className="h-8 w-8 text-green-500" />
           </div>
+          <p className="text-4xl font-bold text-green-600 tracking-tight leading-none">
+            S/{stats.ventasHoy.total.toFixed(2)}
+          </p>
+          <p className="text-xs text-gray-400 mt-auto pt-4">Ventas registradas hoy</p>
         </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Productos Movidos</p>
-              <p className="text-2xl font-bold text-blue-600">
-                {stats.salidasHoy.total +
-                  stats.reposicionesHoy.total +
-                  stats.cortesiasHoy.total}
-              </p>
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col min-h-[160px]">
+          <div className="flex items-start justify-between mb-4">
+            <p className="text-sm font-medium text-gray-500">Salidas a Recepción</p>
+            <div className="p-2.5 rounded-full bg-blue-50 text-blue-500 flex-shrink-0 ml-3 border border-blue-100">
+              <FaTruckLoading className="h-4 w-4" />
             </div>
-            <FaTruckLoading className="h-8 w-8 text-blue-500" />
           </div>
+          <p className="text-4xl font-bold text-blue-600 tracking-tight leading-none">
+            {stats.salidasHoy.total +
+              stats.reposicionesHoy.total +
+              stats.cortesiasHoy.total}
+          </p>
+          <p className="text-xs text-gray-400 mt-auto pt-4">Unidades enviadas hoy</p>
         </div>
       </div>
 
@@ -233,95 +241,6 @@ const Dashboard = () => {
               color={card.color}
             />
           ))}
-        </div>
-      </div>
-
-      {/* Sección de actividad reciente */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">
-          Actividad Reciente
-        </h2>
-        <div className="space-y-4">
-          {/* Últimas ventas */}
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded">
-                <FaShoppingCart className="h-4 w-4 text-green-600" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-700">Última venta</p>
-                <p className="text-sm text-gray-500">
-                  {ventas.length > 0
-                    ? `S/${ventas[ventas.length - 1]?.importe_venta?.toFixed(2) || "0.00"}`
-                    : "Sin ventas hoy"}
-                </p>
-              </div>
-            </div>
-            <span className="text-sm text-gray-400">
-              {ventas.length > 0
-                ? new Date(
-                    ventas[ventas.length - 1]?.createdAt,
-                  ).toLocaleTimeString("es-ES", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                : "--:--"}
-            </span>
-          </div>
-
-          {/* Última compra */}
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-100 rounded">
-                <FaBoxOpen className="h-4 w-4 text-orange-600" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-700">Última compra</p>
-                <p className="text-sm text-gray-500">
-                  {compras.length > 0
-                    ? `S/${compras[compras.length - 1]?.importe_compra?.toFixed(2) || "0.00"}`
-                    : "Sin compras hoy"}
-                </p>
-              </div>
-            </div>
-            <span className="text-sm text-gray-400">
-              {compras.length > 0
-                ? new Date(
-                    compras[compras.length - 1]?.createdAt,
-                  ).toLocaleTimeString("es-ES", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                : "--:--"}
-            </span>
-          </div>
-
-          {/* Última salida */}
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded">
-                <FaTruckLoading className="h-4 w-4 text-blue-600" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-700">Última salida</p>
-                <p className="text-sm text-gray-500">
-                  {salidas.length > 0
-                    ? `${salidas[salidas.length - 1]?.cantidad || 0} unidades`
-                    : "Sin salidas hoy"}
-                </p>
-              </div>
-            </div>
-            <span className="text-sm text-gray-400">
-              {salidas.length > 0
-                ? new Date(
-                    salidas[salidas.length - 1]?.createdAt,
-                  ).toLocaleTimeString("es-ES", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                : "--:--"}
-            </span>
-          </div>
         </div>
       </div>
     </div>

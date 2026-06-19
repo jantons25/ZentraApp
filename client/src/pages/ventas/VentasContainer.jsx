@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useInventarioData } from "../../hooks/useInventarioData.js";
 import MaquetaHtml from "../../components/MaquetaHtml.jsx";
-import OptAgregarVenta from "../../components/OptAgregarVenta.jsx";
+import OptAgregar from "../../components/OptAgregar.jsx";
 import OptListaVentas from "../../components/OptListaVentas.jsx";
 import OptListaSalidas from "../../components/OptListaSalidas.jsx";
 import OptListaCortesia from "../../components/OptListaCortesia.jsx";
@@ -32,7 +32,7 @@ function VentasPage() {
     compras,
     getAllCompras,
     veladas,
-    getVeladas
+    getVeladas,
   } = useInventarioData();
   const [vistaActiva, setVistaActiva] = useState("");
   const [botonAgregar, setBotonAgregar] = useState(false);
@@ -79,6 +79,18 @@ function VentasPage() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (user?.role === "recepcionista" && vistaActiva === "") {
+      setVistaActiva("Ventas");
+    }
+    if (
+      (user?.role === "admin" || user?.role === "superadmin") &&
+      vistaActiva === ""
+    ) {
+      setVistaActiva("DataVentas");
+    }
+  }, [user?.role]);
+
   if (loading)
     return (
       <div className="flex items-center justify-center h-screen">
@@ -100,8 +112,17 @@ function VentasPage() {
         relevos={relevos}
         veladas={veladas}
         opt1={
-          canAccess("admin", "recepcionista", "superadmin") ? (
-            <OptAgregarVenta onClick={() => setBotonAgregar(true)} />
+          canAccess("admin", "recepcionista", "superadmin") &&
+          [
+            "Ventas",
+            "Compras",
+            "Salidas",
+            "Reposiciones",
+            "Cortesias",
+            "Veladas",
+            "Productos",
+          ].includes(vistaActiva) ? (
+            <OptAgregar onClick={() => setBotonAgregar(true)} />
           ) : null
         }
         opt2={
@@ -139,6 +160,11 @@ function VentasPage() {
         opt8={
           canAccess("admin", "superadmin") ? (
             <OptListaProductos onClick={() => setVistaActiva("Productos")} />
+          ) : null
+        }
+        opt9={
+          canAccess("admin", "superadmin", "recepcionista") ? (
+            <OptListaData onClick={() => setVistaActiva("DataVentas")} />
           ) : null
         }
         pagina="Ventas"

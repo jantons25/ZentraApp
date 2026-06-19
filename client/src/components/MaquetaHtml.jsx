@@ -22,6 +22,7 @@ function MaquetaHtml({
   opt6,
   opt7,
   opt8,
+  opt9,
   pagina,
   vistaActiva,
   setVistaActiva,
@@ -58,6 +59,7 @@ function MaquetaHtml({
           opt6={opt6}
           opt7={opt7}
           opt8={opt8}
+          opt9={opt9}
           pagina={pagina}
           vistaActiva={vistaActiva}
           btn1={btn1}

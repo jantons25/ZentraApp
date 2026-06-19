@@ -5,6 +5,7 @@ import ProductsList from "./ProductsList";
 import ReposicionesList from "./ReposicionList";
 import CortesiaList from "./CortesiaList";
 import VeladasProductList from "./VeladasProductList";
+import RecepcionData from "./RecepcionData";
 
 function VentasSection({
   vistaActiva,
@@ -111,6 +112,20 @@ function VentasSection({
     );
   }
 
+  if (vistaActiva === "DataVentas") {
+    return (
+      <>
+        <RecepcionData
+          ventas={ventas}
+          compras={compras}
+          productos={products}
+          reposiciones={reposiciones}
+          cortesias={cortesias}
+        />
+      </>
+    );
+  }
+
   if (user?.role === "recepcionista") {
     return (
       <VentasList
@@ -127,7 +142,7 @@ function VentasSection({
   return (
     <VentasList
       ventas={ventas}
-      vistaActiva="DataVentas"
+      vistaActiva="Ventas"
       compras={compras}
       products={products}
       reposiciones={reposiciones}

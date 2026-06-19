@@ -16,23 +16,12 @@ function RecepcionData({
 }) {
   const filtroBoxDatos = "hoy";
   return (
-    <div className="recepcion-data grid place-content-center">
-      {/* <div className="container">
-        <h1 className="text-2xl bold font-medium">Dashboard Diao</h1>
-        <p className="p_final">
-          En este panel podrás ver un resumen general de la actividad del
-          sistema. Aquí encontrarás los datos más importantes de manera rápida y
-          visual: tus ventas, compras, productos más vendidos y el estado actual
-          del inventario. Este espacio te permite conocer cómo va tu operación
-          sin necesidad de revisar cada módulo. Si necesitas actualizar la
-          información o agregar nuevos registros, puedes hacerlo fácilmente
-          desde los botones disponibles en la parte superior.
-        </p>
+    <div className="recepcion-data">
+      <div className="container max-w-full">
         <div>
           <Dashboard />
         </div>
-      </div> */}
-      En Proceso...
+      </div>
     </div>
   );
 }
