@@ -28,6 +28,7 @@ export const modalRegistry = {
       refreshPagina: ctx.refreshPagina,
       products: ctx.products,
       ventas: ctx.ventas,
+      user: ctx.user
     }),
   },
   Compras: {
