@@ -5,6 +5,7 @@ import {
 } from "./novedadesUI.js";
 
 function NovedadesList({ novedades, puedeGestionar, onEditar, onEliminar }) {
+  console.log(novedades)
   if (!novedades.length) {
     return (
       <div className="bg-white p-6 w-full text-gray-500 text-center">
@@ -19,9 +20,8 @@ function NovedadesList({ novedades, puedeGestionar, onEditar, onEliminar }) {
         <thead className="bg-gray-100 text-xs uppercase text-gray-500">
           <tr>
             <th className="px-6 py-3">Fecha</th>
-            <th className="px-6 py-3">Título</th>
+            <th className="px-6 py-3">Descripción</th>
             <th className="px-6 py-3">Usuario</th>
-            <th className="px-6 py-3">Tipo</th>
             <th className="px-6 py-3">Estado</th>
             <th className="px-6 py-3">Acciones</th>
           </tr>
@@ -35,19 +35,9 @@ function NovedadesList({ novedades, puedeGestionar, onEditar, onEliminar }) {
               <td className="px-6 py-4">
                 {formatearFechaNovedad(novedad.fechaRegistro)}
               </td>
-              <td className="px-6 py-4 font-medium">{novedad.titulo}</td>
+              <td className="px-6 py-4 font-medium">{novedad.descripcion}</td>
               <td className="px-6 py-4">
                 {novedad.usuario?.name || novedad.usuario?.username || "—"}
-              </td>
-              <td className="px-6 py-4">
-                <span className="flex items-center gap-2">
-                  <span
-                    className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                      TIPO_DOT[novedad.tipo] || "bg-gray-400"
-                    }`}
-                  ></span>
-                  {novedad.tipo}
-                </span>
               </td>
               <td className="px-6 py-4">
                 <span
