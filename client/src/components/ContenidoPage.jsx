@@ -206,6 +206,7 @@ function ContenidoPage({
       {pagina === "Ventas" && (
         <VentasSection
           vistaActiva={vistaActiva}
+          setVistaActiva={setVistaActiva}
           user={user}
           ventas={ventas}
           compras={compras}

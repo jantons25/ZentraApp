@@ -32,9 +32,9 @@ function MenuFlotante({
                   : pagina === "Administracion"
                   ? "Administración"
                   : pagina === "Inventario"
-                  ? "Inventario "
+                  ? "Inventario"
                   : ""
-                : vistaActiva
+                : vistaActiva === "DataVentas" ? "" : vistaActiva
               : ""}
           </h1>
         </div>

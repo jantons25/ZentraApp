@@ -2,14 +2,10 @@ import { useEffect, useState } from "react";
 import { useInventarioData } from "../../hooks/useInventarioData.js";
 import MaquetaHtml from "../../components/MaquetaHtml.jsx";
 import OptAgregar from "../../components/OptAgregar.jsx";
-import OptListaVentas from "../../components/OptListaVentas.jsx";
-import OptListaSalidas from "../../components/OptListaSalidas.jsx";
-import OptListaCortesia from "../../components/OptListaCortesia.jsx";
-import OptListaCompras from "../../components/OptListaCompras.jsx";
 import OptListaData from "../../components/OptListaData.jsx";
 import OptListaProductos from "../../components/OptListaProductos.jsx";
-import OptListaReposiciones from "../../components/OptListaReposiciones.jsx";
-import OptListaVeladas from "../../components/OptListaProductVeladas.jsx";
+import OptGrupoRecepcion from "../../components/OptGrupoRecepcion.jsx";
+import OptGrupoAdministracion from "../../components/OptGrupoAdministracion.jsx";
 
 function VentasPage() {
   const {
@@ -127,34 +123,12 @@ function VentasPage() {
         }
         opt2={
           canAccess("recepcionista", "superadmin", "admin") ? (
-            <OptListaVentas onClick={() => setVistaActiva("Ventas")} />
+            <OptGrupoRecepcion onClick={() => setVistaActiva("Ventas")} />
           ) : null
         }
         opt3={
           canAccess("admin", "superadmin") ? (
-            <OptListaCompras onClick={() => setVistaActiva("Compras")} />
-          ) : null
-        }
-        opt4={
-          canAccess("admin", "superadmin") ? (
-            <OptListaSalidas onClick={() => setVistaActiva("Salidas")} />
-          ) : null
-        }
-        opt5={
-          canAccess("recepcionista", "superadmin", "admin") ? (
-            <OptListaReposiciones
-              onClick={() => setVistaActiva("Reposiciones")}
-            />
-          ) : null
-        }
-        opt6={
-          canAccess("recepcionista", "superadmin", "admin") ? (
-            <OptListaCortesia onClick={() => setVistaActiva("Cortesias")} />
-          ) : null
-        }
-        opt7={
-          canAccess("recepcionista", "superadmin", "admin") ? (
-            <OptListaVeladas onClick={() => setVistaActiva("Veladas")} />
+            <OptGrupoAdministracion onClick={() => setVistaActiva("Compras")} />
           ) : null
         }
         opt8={
