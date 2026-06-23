@@ -11,6 +11,7 @@ import {
 } from "../controllers/compra.controller.js";
 
 import { authRequired } from "../middlewares/validateToken.js";
+import { resolveSede } from "../middlewares/resolveSede.js";
 import { validateSchema } from "../middlewares/validator.middleware.js";
 import {
   createCompraSchema,
@@ -21,14 +22,14 @@ import {
 const router = Router();
 
 // Obtener compras
-router.get("/compras", authRequired, getCompras);
-router.get("/compras/all", authRequired, getAllCompras);
-router.get("/compras/:id", authRequired, getCompra);
+router.get("/compras", authRequired, resolveSede, getCompras);
+router.get("/compras/all", authRequired, resolveSede, getAllCompras);
+router.get("/compras/:id", authRequired, resolveSede, getCompra);
 
 // Crear compras (una o varias)
 router.post(
   "/compras",
-  authRequired,
+  authRequired, resolveSede,
   validateSchema(createCompraSchema),
   createCompra
 );
@@ -36,7 +37,7 @@ router.post(
 // Actualizar compras (lote)
 router.put(
   "/compras/lote",
-  authRequired,
+  authRequired, resolveSede,
   validateSchema(updateCompraSchema),
   updateLoteCompra
 );
@@ -44,15 +45,15 @@ router.put(
 // Actualizar compra individual
 router.put(
   "/compras/:id",
-  authRequired,
+  authRequired, resolveSede,
   validateSchema(updateCompraUnitSchema),
   updateCompra
 );
 
 // Eliminar compras por lote (debe ir antes que /:id para evitar conflicto)
-router.delete("/compras/lote/:id_lote", authRequired, deleteLoteCompras);
+router.delete("/compras/lote/:id_lote", authRequired, resolveSede, deleteLoteCompras);
 
 // Eliminar compra individual
-router.delete("/compras/:id", authRequired, deleteCompra);
+router.delete("/compras/:id", authRequired, resolveSede, deleteCompra);
 
 export default router;

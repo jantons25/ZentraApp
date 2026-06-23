@@ -11,6 +11,7 @@ import {
   deleteLoteSalidaCompleta,
 } from "../controllers/salidas.controller.js";
 import { authRequired } from "../middlewares/validateToken.js";
+import { resolveSede } from "../middlewares/resolveSede.js";
 import { validateSchema } from "../middlewares/validator.middleware.js";
 import {
   createSalidasSchema,
@@ -21,14 +22,14 @@ import {
 const router = Router();
 
 // Obtener salidas
-router.get("/salidas", authRequired, getSalidas);
-router.get("/salidas/all", authRequired, getAllSalidas);
-router.get("/salidas/:id", authRequired, getSalida);
+router.get("/salidas", authRequired, resolveSede, getSalidas);
+router.get("/salidas/all", authRequired, resolveSede, getAllSalidas);
+router.get("/salidas/:id", authRequired, resolveSede, getSalida);
 
 // Crear salidas (individual o lote)
 router.post(
   "/salidas",
-  authRequired,
+  authRequired, resolveSede,
   validateSchema(createSalidasSchema),
   createSalida
 );
@@ -36,7 +37,7 @@ router.post(
 // Actualizar lote de salidas
 router.put(
   "/salidas/lote",
-  authRequired,
+  authRequired, resolveSede,
   validateSchema(updateSalidaSchema),
   updateLoteSalidas
 );
@@ -44,18 +45,18 @@ router.put(
 // Actualizar salida individual
 router.put(
   "/salidas/:id",
-  authRequired,
+  authRequired, resolveSede,
   validateSchema(updateSalidaUnitSchema),
   updateSalida
 );
 
 // Eliminar lote de salidas completo (debe ir primero para evitar conflicto con /:id)
-router.delete("/salidas/lote/completo/:id_lote", authRequired, deleteLoteSalidaCompleta);
+router.delete("/salidas/lote/completo/:id_lote", authRequired, resolveSede, deleteLoteSalidaCompleta);
 
 // Eliminar lote de salidas
-router.delete("/salidas/lote/:id_lote", authRequired, deleteLoteSalida);
+router.delete("/salidas/lote/:id_lote", authRequired, resolveSede, deleteLoteSalida);
 
 // Eliminar salida individual
-router.delete("/salidas/:id", authRequired, deleteSalida);
+router.delete("/salidas/:id", authRequired, resolveSede, deleteSalida);
 
 export default router;

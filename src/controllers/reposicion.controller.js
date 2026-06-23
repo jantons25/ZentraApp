@@ -9,7 +9,7 @@ import {
 
 export const getReposiciones = async (req, res) => {
   try {
-    const reposiciones = await Reposiciones.find({ sede: req.user.sede })
+    const reposiciones = await Reposiciones.find({ sede: req.sede })
       .populate("user")
       .populate("producto");
     res.json(reposiciones);
@@ -21,7 +21,7 @@ export const getReposiciones = async (req, res) => {
 
 export const createReposicion = async (req, res) => {
   try {
-    const resultado = await crearReposiciones(req.body, req.user.id, req.user.sede);
+    const resultado = await crearReposiciones(req.body, req.user.id, req.sede);
     res.status(201).json(resultado);
   } catch (error) {
     console.error("Error createReposicion:", error.message);
@@ -31,7 +31,7 @@ export const createReposicion = async (req, res) => {
 
 export const deleteReposicion = async (req, res) => {
   try {
-    const resultado = await eliminarReposicionPorId(req.params.id, req.user.sede);
+    const resultado = await eliminarReposicionPorId(req.params.id, req.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error deleteReposicion:", error.message);
@@ -41,7 +41,7 @@ export const deleteReposicion = async (req, res) => {
 
 export const deleteLoteReposiciones = async (req, res) => {
   try {
-    const resultado = await eliminarLoteReposicionesPorId(req.params.id_lote, req.user.sede);
+    const resultado = await eliminarLoteReposicionesPorId(req.params.id_lote, req.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error deleteLoteReposiciones:", error.message);
@@ -51,7 +51,7 @@ export const deleteLoteReposiciones = async (req, res) => {
 
 export const updateReposicion = async (req, res) => {
   try {
-    const reposicionActualizada = await actualizarReposicionIndividual(req.params.id, req.body, req.user.sede);
+    const reposicionActualizada = await actualizarReposicionIndividual(req.params.id, req.body, req.sede);
     res.json({ message: "Reposición actualizada correctamente", reposicion: reposicionActualizada });
   } catch (error) {
     console.error("Error updateReposicion:", error.message);
@@ -62,7 +62,7 @@ export const updateReposicion = async (req, res) => {
 export const updateLoteReposiciones = async (req, res) => {
   try {
     const { ids, reposiciones } = req.body;
-    const resultado = await actualizarLoteReposiciones(ids, reposiciones, req.user.id, req.user.sede);
+    const resultado = await actualizarLoteReposiciones(ids, reposiciones, req.user.id, req.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error updateLoteReposiciones:", error.message);

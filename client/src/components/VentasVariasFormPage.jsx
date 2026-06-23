@@ -6,6 +6,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { ventaItemSchema } from "../validations/ventaSchema";
 import { toast } from "react-hot-toast";
 import { getHabitacionesPorSede } from "../constants/habitacionesPorSede";
+import { useSede } from "../context/SedeContext.jsx";
 
 function VentasVariasFormPage({ closeModal, refreshPagina, venta, products, user }) {
   const {
@@ -19,6 +20,7 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products, user
     resolver: yupResolver(ventaItemSchema),
   });
   const { createVenta, updateLoteVentas, updateVentaById } = useVenta();
+  const { sedeActiva } = useSede();
   const [ventasTemporales, setVentasTemporales] = useState([]);
   const [textBoton, setTextBoton] = useState("Vender");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -235,7 +237,7 @@ function VentasVariasFormPage({ closeModal, refreshPagina, venta, products, user
 
   const pagoRegistrado = watch("pago_registrado");
   const productoId = watch("producto");
-  const habitacionesDisponibles = getHabitacionesPorSede(user?.sede);
+  const habitacionesDisponibles = getHabitacionesPorSede(sedeActiva);
 
   useEffect(() => {
     if (productoId) {

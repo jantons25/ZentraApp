@@ -9,7 +9,7 @@ import {
 
 export const getCompras = async (req, res) => {
   try {
-    const compras = await Compra.find({ user: req.user.id, sede: req.user.sede })
+    const compras = await Compra.find({ user: req.user.id, sede: req.sede })
       .populate("user")
       .populate("producto");
     res.json(compras);
@@ -21,7 +21,7 @@ export const getCompras = async (req, res) => {
 
 export const getAllCompras = async (req, res) => {
   try {
-    const compras = await Compra.find({ sede: req.user.sede })
+    const compras = await Compra.find({ sede: req.sede })
       .populate("user")
       .populate("producto");
     res.json(compras);
@@ -33,7 +33,7 @@ export const getAllCompras = async (req, res) => {
 
 export const createCompra = async (req, res) => {
   try {
-    const resultado = await crearCompras(req.body, req.user.id, req.user.sede);
+    const resultado = await crearCompras(req.body, req.user.id, req.sede);
     res.status(201).json(resultado);
   } catch (error) {
     console.error("Error createCompra:", error.message);
@@ -43,7 +43,7 @@ export const createCompra = async (req, res) => {
 
 export const updateCompra = async (req, res) => {
   try {
-    const compraActualizada = await actualizarCompraIndividual(req.params.id, req.body, req.user.sede);
+    const compraActualizada = await actualizarCompraIndividual(req.params.id, req.body, req.sede);
     res.json({ message: "Compra actualizada correctamente", compra: compraActualizada });
   } catch (error) {
     console.error("Error updateCompra:", error.message);
@@ -54,7 +54,7 @@ export const updateCompra = async (req, res) => {
 export const updateLoteCompra = async (req, res) => {
   try {
     const { ids, nuevasCompras } = req.body;
-    const resultado = await actualizarLoteCompras(ids, nuevasCompras, req.user.id, req.user.sede);
+    const resultado = await actualizarLoteCompras(ids, nuevasCompras, req.user.id, req.sede);
     res.json(resultado);
   } catch (error) {
     console.error("Error updateLoteCompra:", error.message);
@@ -64,7 +64,7 @@ export const updateLoteCompra = async (req, res) => {
 
 export const deleteCompra = async (req, res) => {
   try {
-    const resultado = await eliminarCompraPorId(req.params.id, req.user.sede);
+    const resultado = await eliminarCompraPorId(req.params.id, req.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error deleteCompra:", error.message);
@@ -74,7 +74,7 @@ export const deleteCompra = async (req, res) => {
 
 export const deleteLoteCompras = async (req, res) => {
   try {
-    const data = await eliminarLoteComprasPorId(req.params.id_lote, req.user.sede);
+    const data = await eliminarLoteComprasPorId(req.params.id_lote, req.sede);
     res.status(200).json(data);
   } catch (error) {
     console.error("Error deleteLoteCompras:", error.message);
@@ -84,7 +84,7 @@ export const deleteLoteCompras = async (req, res) => {
 
 export const getCompra = async (req, res) => {
   try {
-    const compra = await Compra.findOne({ _id: req.params.id, sede: req.user.sede })
+    const compra = await Compra.findOne({ _id: req.params.id, sede: req.sede })
       .populate("user")
       .populate("producto");
     if (!compra) return res.status(404).json({ message: "Compra no registrada" });

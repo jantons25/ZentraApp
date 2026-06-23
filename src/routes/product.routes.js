@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authRequired } from "../middlewares/validateToken.js";
+import { resolveSede } from "../middlewares/resolveSede.js";
 import { createProductSchema } from "../schemas/product.schema.js";
 import { validateSchema } from "../middlewares/validator.middleware.js";
 import {
@@ -12,16 +13,16 @@ import {
 
 const router = Router();
 
-router.get("/products", authRequired, getProductos);
-router.get("/products/all", authRequired, getProductos);
-router.get("/products/:id", authRequired, getProductoPorId);
+router.get("/products", authRequired, resolveSede, getProductos);
+router.get("/products/all", authRequired, resolveSede, getProductos);
+router.get("/products/:id", authRequired, resolveSede, getProductoPorId);
 router.post(
   "/products",
-  authRequired,
+  authRequired, resolveSede,
   validateSchema(createProductSchema),
   createNewProduct
 );
-router.put("/products/:id", authRequired, updateProduct);
-router.delete("/products/:id", authRequired, deleteProduct);
+router.put("/products/:id", authRequired, resolveSede, updateProduct);
+router.delete("/products/:id", authRequired, resolveSede, deleteProduct);
 
 export default router;

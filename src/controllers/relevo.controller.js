@@ -4,7 +4,7 @@ export const getRelevos = async (req, res) => {
   try {
     const relevos = await Relevo.find({
       user: req.user.id,
-      sede: req.user.sede,
+      sede: req.sede,
     }).populate('user');
     res.json(relevos);
   } catch (error) {
@@ -14,7 +14,7 @@ export const getRelevos = async (req, res) => {
 
 export const getAllRelevos = async (req, res) => {
   try {
-    const relevos = await Relevo.find({ sede: req.user.sede }).populate("user");
+    const relevos = await Relevo.find({ sede: req.sede }).populate("user");
     res.json(relevos);
   } catch (error) {
     console.error('Error al obtener los relevos:', error.message);
@@ -32,7 +32,7 @@ export const createRelevo = async (req, res) => {
       observacion,
       conformidad,
       user: req.user.id,
-      sede: req.user.sede,
+      sede: req.sede,
     });
 
     const saveRelevo = await newRelevo.save();
@@ -45,7 +45,7 @@ export const createRelevo = async (req, res) => {
 export const getRelevo = async (req, res) => {
   try {
     const { id } = req.params;
-    const relevo = await Relevo.findOne({ _id: id, sede: req.user.sede }).populate('user');
+    const relevo = await Relevo.findOne({ _id: id, sede: req.sede }).populate('user');
     if (!relevo) return res.status(404).json({ message: 'Relevo no encontrado' });
     res.json(relevo);
   } catch (error) {
@@ -56,7 +56,7 @@ export const getRelevo = async (req, res) => {
 export const deleteRelevo = async (req, res) => {
   try {
     const { id } = req.params;
-    const relevo = await Relevo.findOneAndDelete({ _id: id, sede: req.user.sede });
+    const relevo = await Relevo.findOneAndDelete({ _id: id, sede: req.sede });
     if (!relevo) return res.status(404).json({ message: 'Relevo no encontrado' });
     res.json({ message: 'Relevo eliminado' });
   } catch (error) {
@@ -69,7 +69,7 @@ export const updateRelevo = async (req, res) => {
     const { id } = req.params;
     const { responsable, recepcionista, observacion, conformidad } = req.body;
     const relevo = await Relevo.findOneAndUpdate(
-      { _id: id, sede: req.user.sede },
+      { _id: id, sede: req.sede },
       { responsable, recepcionista, observacion, conformidad },
       { new: true }
     );

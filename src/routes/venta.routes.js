@@ -10,6 +10,7 @@ import {
   deleteLoteVentas,
 } from "../controllers/venta.controller.js";
 import { authRequired } from "../middlewares/validateToken.js";
+import { resolveSede } from "../middlewares/resolveSede.js";
 import { validateSchema } from "../middlewares/validator.middleware.js";
 import {
   createVentaSchema,
@@ -19,32 +20,32 @@ import {
 
 const router = Router();
 
-router.get("/ventas", authRequired, getVentas);
-router.get("/ventas/all", authRequired, getAllVentas);
-router.get("/ventas/:id", authRequired, getVenta);
+router.get("/ventas", authRequired, resolveSede, getVentas);
+router.get("/ventas/all", authRequired, resolveSede, getAllVentas);
+router.get("/ventas/:id", authRequired, resolveSede, getVenta);
 
 router.post(
   "/ventas",
-  authRequired,
+  authRequired, resolveSede,
   validateSchema(createVentaSchema),
   createVenta
 );
 
 router.put(
   "/ventas/lote",
-  authRequired,
+  authRequired, resolveSede,
   validateSchema(updateVentaSchema),
   updateVenta
 );
 
 router.put(
   "/ventas/:id",
-  authRequired,
+  authRequired, resolveSede,
   validateSchema(updateVentaUnitSchema),
   updateVentaById
 );
 
-router.delete("/ventas/lote/:id_lote", authRequired, deleteLoteVentas);
-router.delete("/ventas/:id", authRequired, deleteVenta);
+router.delete("/ventas/lote/:id_lote", authRequired, resolveSede, deleteLoteVentas);
+router.delete("/ventas/:id", authRequired, resolveSede, deleteVenta);
 
 export default router;

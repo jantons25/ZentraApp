@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { createdAccessToken } from "../libs/jwt.js";
 import jwt from "jsonwebtoken";
 import { TOKEN_SECRET } from "../config.js";
+import { SEDES_VALIDAS } from "../constants/sedes.js";
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -20,6 +21,12 @@ export const register = async (req, res) => {
 
     const allowedRoles = ["user", "admin", "superadmin", "recepcionista"];
     const finalRole = allowedRoles.includes(role) ? role : "user";
+
+    if (finalRole === "recepcionista" && !SEDES_VALIDAS.includes(sede)) {
+      return res.status(400).json({
+        message: "Un recepcionista debe tener una sede válida asignada.",
+      });
+    }
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -197,6 +204,14 @@ export const updateUser = async (req, res) => {
         }
         updateData.role = role;
       }
+    }
+
+    const finalRole = updateData.role ?? targetUser.role;
+    const finalSede = updateData.sede ?? targetUser.sede;
+    if (finalRole === "recepcionista" && !SEDES_VALIDAS.includes(finalSede)) {
+      return res.status(400).json({
+        message: "Un recepcionista debe tener una sede válida asignada.",
+      });
     }
 
     if (password && password.trim() !== "") {

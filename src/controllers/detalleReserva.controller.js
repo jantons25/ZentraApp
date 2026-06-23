@@ -57,7 +57,7 @@ export const registrarPagoDetalleReserva = async (req, res) => {
       referencia,
       comprobante_url,
       fecha_pago,
-      sede: req.user.sede,
+      sede: req.sede,
       registrado_por: req.user?.id || null,
     });
 

@@ -1,0 +1,118 @@
+/* Selector de sede — botón en el sidebar + popover flotante hacia arriba.
+   Reusa los tokens visuales del sidebar (radios, bordes, tipografía). */
+
+.sede-selector {
+    /* position: relative es CRÍTICO: el popover usa position: absolute y se
+       ancla al primer ancestro posicionado. Sin esto, el popover se ancla al
+       <body> y queda fuera del viewport (parece que el menú "no abre"). */
+    position: relative;
+    list-style: none;
+    margin-top: auto; /* empuja Sede + Usuario al final del sidebar */
+}
+
+.sede-trigger {
+    width: 100%;
+    padding: .8rem 1.3rem;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.55);
+    display: grid;
+    grid-template-columns: 40px 0fr;
+    align-items: center;
+    cursor: pointer;
+    text-align: left;
+    color: #1f2937;
+    transition: grid-template-columns .4s, background-color .15s, border-color .15s;
+}
+
+.sidebar:hover .sede-trigger {
+    grid-template-columns: 40px 1fr;
+}
+
+.sede-trigger:hover,
+.sede-trigger[aria-expanded="true"] {
+    background-color: #ffffff;
+    border-color: #ebecf0;
+}
+
+.sede-trigger:focus-visible {
+    outline: 2px solid #1f2937;
+    outline-offset: 2px;
+}
+
+.sede-trigger__icon {
+    width: 30px;
+    justify-self: center;
+}
+
+.sede-trigger__label {
+    padding-left: 1.3rem;
+    font-size: .9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Popover anclado al botón, abriendo hacia arriba */
+.sede-popover {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 8px);
+    background-color: #ffffff;
+    border: 1px solid #ebecf0;
+    border-radius: 10px;
+    padding: .4rem;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    animation: sedePopoverIn 140ms ease-out;
+    transform-origin: bottom center;
+}
+
+@keyframes sedePopoverIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sede-option {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    align-items: center;
+    gap: .6rem;
+    padding: .55rem .7rem;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: .875rem;
+    color: #1f2937;
+    text-align: left;
+    width: 100%;
+    transition: background-color .12s;
+}
+
+.sede-option:hover,
+.sede-option:focus-visible {
+    background-color: #f3f4f6;
+    outline: none;
+}
+
+.sede-option--active {
+    background-color: #f3f4f6;
+    font-weight: 600;
+}
+
+.sede-option__icon {
+    width: 22px;
+    justify-self: center;
+    opacity: .85;
+}

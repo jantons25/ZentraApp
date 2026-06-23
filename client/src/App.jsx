@@ -1,7 +1,9 @@
+import { Fragment } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { SedeProvider, useSede } from "./context/SedeContext.jsx";
 import ProductsPage from "./pages/ProductsPage.jsx";
 import ProductFormPage from "./pages/ProductFormPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
@@ -31,102 +33,115 @@ import OperacionesPage from "./pages/Operaciones.jsx"
 import ReservasPage from "./pages/ReservasPage.jsx";
 import Dashboard from "./pages/Dashboard";
 
+// DomainStack: fuerza el remount completo de los providers de dominio y las
+// rutas cada vez que cambia la sede activa. Esto invalida cualquier dato
+// cacheado en memoria por los contexts (productos, ventas, etc.) y dispara
+// el refetch natural via useEffect([], …) sin tocar cada provider.
+function DomainStack({ children }) {
+  const { sedeActiva } = useSede();
+  return <Fragment key={sedeActiva || "boot"}>{children}</Fragment>;
+}
+
 function App() {
   return (
     <>
       <AuthProvider>
-        <VeladaProvider>
-          <EspacioProvider>
-            <DetalleReservaProvider>
-              <ReservaProvider>
-                <ClienteProvider>
-                  <ComprasProvider>
-                    <VentaProvider>
-                      <SalidaProvider>
-                        <ReposicionProvider>
-                          <CortesiaProvider>
-                            <RelevoProvider>
-                              <ProductProvider>
-                                <NovedadProvider>
-                                <BrowserRouter>
-                                  <Routes>
-                                    <Route
-                                      path="/login"
-                                      element={<LoginPage />}
-                                    />
-                                    <Route
-                                      path="/register"
-                                      element={<RegisterPage />}
-                                    />
-                                    <Route element={<ProtectedRoute />}>
-                                      <Route
-                                        path="/products"
-                                        element={<ProductsPage />}
-                                      />
-                                      <Route
-                                        path="/"
-                                        element={<Inventario />}
-                                      />
-                                      <Route
-                                        path="/dashboard"
-                                        element={<Dashboard />}
-                                      />
-                                      <Route
-                                        path="/inventario"
-                                        element={<Inventario />}
-                                      />
-                                      <Route
-                                        path="/compras"
-                                        element={<ComprasPage />}
-                                      />
-                                      <Route
-                                        path="/ventas"
-                                        element={<VentasPage />}
-                                      />
-                                      <Route
-                                        path="/operaciones"
-                                        element={<OperacionesPage />}
-                                      />
-                                      <Route
-                                        path="/salidas"
-                                        element={<SalidasPage />}
-                                      />
-                                      <Route
-                                        path="/administracion"
-                                        element={<AdministracionPage />}
-                                      />
-                                      <Route
-                                        path="/reservas"
-                                        element={<ReservasPage />}
-                                      />
-                                      <Route
-                                        path="/add-product"
-                                        element={<ProductFormPage />}
-                                      />
-                                      <Route
-                                        path="/products/:id"
-                                        element={<ProductFormPage />}
-                                      />
-                                      <Route
-                                        path="/profile"
-                                        element={<ProfilePage />}
-                                      />
-                                    </Route>
-                                  </Routes>
-                                </BrowserRouter>
-                                </NovedadProvider>
-                              </ProductProvider>
-                            </RelevoProvider>
-                          </CortesiaProvider>
-                        </ReposicionProvider>
-                      </SalidaProvider>
-                    </VentaProvider>
-                  </ComprasProvider>
-                </ClienteProvider>
-              </ReservaProvider>
-            </DetalleReservaProvider>
-          </EspacioProvider>
-        </VeladaProvider>
+        <SedeProvider>
+          <DomainStack>
+            <VeladaProvider>
+              <EspacioProvider>
+                <DetalleReservaProvider>
+                  <ReservaProvider>
+                    <ClienteProvider>
+                      <ComprasProvider>
+                        <VentaProvider>
+                          <SalidaProvider>
+                            <ReposicionProvider>
+                              <CortesiaProvider>
+                                <RelevoProvider>
+                                  <ProductProvider>
+                                    <NovedadProvider>
+                                      <BrowserRouter>
+                                        <Routes>
+                                          <Route
+                                            path="/login"
+                                            element={<LoginPage />}
+                                          />
+                                          <Route
+                                            path="/register"
+                                            element={<RegisterPage />}
+                                          />
+                                          <Route element={<ProtectedRoute />}>
+                                            <Route
+                                              path="/products"
+                                              element={<ProductsPage />}
+                                            />
+                                            <Route
+                                              path="/"
+                                              element={<Inventario />}
+                                            />
+                                            <Route
+                                              path="/dashboard"
+                                              element={<Dashboard />}
+                                            />
+                                            <Route
+                                              path="/inventario"
+                                              element={<Inventario />}
+                                            />
+                                            <Route
+                                              path="/compras"
+                                              element={<ComprasPage />}
+                                            />
+                                            <Route
+                                              path="/ventas"
+                                              element={<VentasPage />}
+                                            />
+                                            <Route
+                                              path="/operaciones"
+                                              element={<OperacionesPage />}
+                                            />
+                                            <Route
+                                              path="/salidas"
+                                              element={<SalidasPage />}
+                                            />
+                                            <Route
+                                              path="/administracion"
+                                              element={<AdministracionPage />}
+                                            />
+                                            <Route
+                                              path="/reservas"
+                                              element={<ReservasPage />}
+                                            />
+                                            <Route
+                                              path="/add-product"
+                                              element={<ProductFormPage />}
+                                            />
+                                            <Route
+                                              path="/products/:id"
+                                              element={<ProductFormPage />}
+                                            />
+                                            <Route
+                                              path="/profile"
+                                              element={<ProfilePage />}
+                                            />
+                                          </Route>
+                                        </Routes>
+                                      </BrowserRouter>
+                                    </NovedadProvider>
+                                  </ProductProvider>
+                                </RelevoProvider>
+                              </CortesiaProvider>
+                            </ReposicionProvider>
+                          </SalidaProvider>
+                        </VentaProvider>
+                      </ComprasProvider>
+                    </ClienteProvider>
+                  </ReservaProvider>
+                </DetalleReservaProvider>
+              </EspacioProvider>
+            </VeladaProvider>
+          </DomainStack>
+        </SedeProvider>
       </AuthProvider>
       <Toaster position="top-right" reverseOrder={false} />
     </>

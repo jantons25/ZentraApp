@@ -78,8 +78,6 @@
 
 .sidebar__item__user{
     margin-top: auto;
-    text-wrap: nowrap;
-    text-align: left;
 }
 
 .sidebar__title, .sidebar__info{

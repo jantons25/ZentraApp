@@ -11,7 +11,7 @@ export const getVentas = async (req, res) => {
   try {
     const ventas = await Venta.find({
       user: req.user.id,
-      sede: req.user.sede,
+      sede: req.sede,
     })
       .populate("user")
       .populate("producto");
@@ -24,7 +24,7 @@ export const getVentas = async (req, res) => {
 
 export const getAllVentas = async (req, res) => {
   try {
-    const ventas = await Venta.find({ sede: req.user.sede })
+    const ventas = await Venta.find({ sede: req.sede })
       .populate("user")
       .populate("producto");
     res.json(ventas);
@@ -36,7 +36,7 @@ export const getAllVentas = async (req, res) => {
 
 export const createVenta = async (req, res) => {
   try {
-    const resultado = await crearVentas(req.body, req.user.id, req.user.sede);
+    const resultado = await crearVentas(req.body, req.user.id, req.sede);
     res.status(201).json(resultado);
   } catch (error) {
     console.error("Error createVenta:", error.message);
@@ -46,7 +46,7 @@ export const createVenta = async (req, res) => {
 
 export const getVenta = async (req, res) => {
   try {
-    const venta = await Venta.findOne({ _id: req.params.id, sede: req.user.sede })
+    const venta = await Venta.findOne({ _id: req.params.id, sede: req.sede })
       .populate("user")
       .populate("producto");
     if (!venta) return res.status(404).json({ message: "Venta no encontrada" });
@@ -59,7 +59,7 @@ export const getVenta = async (req, res) => {
 
 export const deleteVenta = async (req, res) => {
   try {
-    const resultado = await eliminarVentaPorId(req.params.id, req.user.sede);
+    const resultado = await eliminarVentaPorId(req.params.id, req.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error deleteVenta:", error.message);
@@ -69,7 +69,7 @@ export const deleteVenta = async (req, res) => {
 
 export const deleteLoteVentas = async (req, res) => {
   try {
-    const resultado = await eliminarLoteVentasPorId(req.params.id_lote, req.user.sede);
+    const resultado = await eliminarLoteVentasPorId(req.params.id_lote, req.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error deleteLoteVentas:", error.message);
@@ -79,7 +79,7 @@ export const deleteLoteVentas = async (req, res) => {
 
 export const updateVentaById = async (req, res) => {
   try {
-    const ventaActualizada = await actualizarVentaIndividual(req.params.id, req.body, req.user.sede);
+    const ventaActualizada = await actualizarVentaIndividual(req.params.id, req.body, req.sede);
     res.json({ message: "Venta actualizada correctamente", venta: ventaActualizada });
   } catch (error) {
     console.error("Error updateVentaById:", error.message);
@@ -90,7 +90,7 @@ export const updateVentaById = async (req, res) => {
 export const updateVenta = async (req, res) => {
   try {
     const { ids, nuevasVentas } = req.body;
-    const resultado = await actualizarLoteVentas(ids, nuevasVentas, req.user.id, req.user.sede);
+    const resultado = await actualizarLoteVentas(ids, nuevasVentas, req.user.id, req.sede);
     res.json(resultado);
   } catch (error) {
     console.error("Error updateVenta:", error.message);

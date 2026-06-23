@@ -9,6 +9,7 @@ import {
   updateUserRequest,
   logoutRequest,
 } from "../api/auth.js";
+import { clearSede } from "../lib/sedeStore.js";
 
 export const AuthContext = createContext();
 
@@ -67,6 +68,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Error en logout:", getErrorMessage(error));
     } finally {
+      clearSede();
       setUser(null);
       setIsAuthenticated(false);
       setUsers([]);
@@ -129,6 +131,7 @@ export const AuthProvider = ({ children }) => {
         setUser(res.data);
       } catch (error) {
         if (!isMounted) return;
+        clearSede();
         setIsAuthenticated(false);
         setUser(null);
       } finally {

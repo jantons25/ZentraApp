@@ -12,10 +12,6 @@ function InventarioCentralList({ products, compras, ventas, user }) {
   const [filteredCompras, setFilteredCompras] = useState(compras || []);
   const [filteredVentas, setFilteredVentas] = useState(ventas || []);
 
-  const productosDeSede = user?.sede
-  ? products.filter((p) => p.sede === user.sede)
-  : products;
-
   // Cuando cambien las compras/ventas desde el padre, actualizamos base
   useEffect(() => {
     setFilteredCompras(compras || []);
@@ -394,7 +390,7 @@ Muestra el porcentaje que ganas por cada sol invertido en la compra de cada prod
             </tr>
           </thead>
           <tbody>
-            {productosDeSede.map((product) => {
+            {products.map((product) => {
               const precioPromedio = parseFloat(
                 calcularPrecioPromedio(product._id)
               );

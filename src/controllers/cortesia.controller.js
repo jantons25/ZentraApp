@@ -9,7 +9,7 @@ import {
 
 export const getCortesias = async (req, res) => {
   try {
-    const cortesias = await Cortesia.find({ sede: req.user.sede })
+    const cortesias = await Cortesia.find({ sede: req.sede })
       .populate("user")
       .populate("producto");
     res.status(200).json(cortesias);
@@ -21,7 +21,7 @@ export const getCortesias = async (req, res) => {
 
 export const createCortesia = async (req, res) => {
   try {
-    const resultado = await crearCortesias(req.body, req.user.id, req.user.sede);
+    const resultado = await crearCortesias(req.body, req.user.id, req.sede);
     res.status(201).json(resultado);
   } catch (error) {
     console.error("Error createCortesia:", error.message);
@@ -31,7 +31,7 @@ export const createCortesia = async (req, res) => {
 
 export const deleteCortesia = async (req, res) => {
   try {
-    const resultado = await eliminarCortesiaPorId(req.params.id, req.user.sede);
+    const resultado = await eliminarCortesiaPorId(req.params.id, req.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error deleteCortesia:", error.message);
@@ -41,7 +41,7 @@ export const deleteCortesia = async (req, res) => {
 
 export const deleteLoteCortesias = async (req, res) => {
   try {
-    const resultado = await eliminarLoteCortesiasPorId(req.params.id_lote, req.user.sede);
+    const resultado = await eliminarLoteCortesiasPorId(req.params.id_lote, req.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error deleteLoteCortesias:", error.message);
@@ -51,7 +51,7 @@ export const deleteLoteCortesias = async (req, res) => {
 
 export const updateCortesia = async (req, res) => {
   try {
-    const cortesiaActualizada = await actualizarCortesiaIndividual(req.params.id, req.body, req.user.sede);
+    const cortesiaActualizada = await actualizarCortesiaIndividual(req.params.id, req.body, req.sede);
     res.json({ message: "Cortesía actualizada correctamente", cortesia: cortesiaActualizada });
   } catch (error) {
     console.error("Error updateCortesia:", error.message);
@@ -68,7 +68,7 @@ export const updateLoteCortesias = async (req, res) => {
       return res.status(400).json({ message: "Datos inválidos: se esperaban 'ids' y un array de cortesías" });
     }
 
-    const resultado = await actualizarLoteCortesias(ids, payload, req.user.id, req.user.sede);
+    const resultado = await actualizarLoteCortesias(ids, payload, req.user.id, req.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error updateLoteCortesias:", error.message);

@@ -9,7 +9,7 @@ import {
 
 export const getVeladas = async (req, res) => {
   try {
-    const veladas = await Velada.find({ sede: req.user.sede })
+    const veladas = await Velada.find({ sede: req.sede })
       .populate("user")
       .populate("producto");
     res.status(200).json(veladas);
@@ -21,7 +21,7 @@ export const getVeladas = async (req, res) => {
 
 export const createVelada = async (req, res) => {
   try {
-    const resultado = await crearVelada(req.body, req.user.id, req.user.sede);
+    const resultado = await crearVelada(req.body, req.user.id, req.sede);
     res.status(201).json(resultado);
   } catch (error) {
     console.error("Error createVelada:", error.message);
@@ -31,7 +31,7 @@ export const createVelada = async (req, res) => {
 
 export const deleteVelada = async (req, res) => {
   try {
-    const resultado = await eliminarVeladaPorId(req.params.id, req.user.sede);
+    const resultado = await eliminarVeladaPorId(req.params.id, req.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error deleteVelada:", error.message);
@@ -41,7 +41,7 @@ export const deleteVelada = async (req, res) => {
 
 export const deleteLoteVeladas = async (req, res) => {
   try {
-    const resultado = await eliminarLoteVeladasPorId(req.params.id_lote, req.user.sede);
+    const resultado = await eliminarLoteVeladasPorId(req.params.id_lote, req.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error deleteLoteVeladas:", error.message);
@@ -51,7 +51,7 @@ export const deleteLoteVeladas = async (req, res) => {
 
 export const updateVelada = async (req, res) => {
   try {
-    const veladaActualizada = await actualizarVeladaIndividual(req.params.id, req.body, req.user.sede);
+    const veladaActualizada = await actualizarVeladaIndividual(req.params.id, req.body, req.sede);
     res.json({ message: "Velada actualizada correctamente", velada: veladaActualizada });
   } catch (error) {
     console.error("Error updateVelada:", error.message);
@@ -68,7 +68,7 @@ export const updateLoteVeladas = async (req, res) => {
       return res.status(400).json({ message: "Datos inválidos: se esperaban 'ids' y un array de veladas" });
     }
 
-    const resultado = await actualizarLoteVeladas(ids, payload, req.user.id, req.user.sede);
+    const resultado = await actualizarLoteVeladas(ids, payload, req.user.id, req.sede);
     res.status(200).json(resultado);
   } catch (error) {
     console.error("Error updateLoteVeladas:", error.message);

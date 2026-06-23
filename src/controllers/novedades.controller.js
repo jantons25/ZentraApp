@@ -9,7 +9,7 @@ import {
 export const getNovedades = async (req, res) => {
   try {
     const { tipo, estado, usuario, busqueda } = req.query;
-    const novedades = await obtenerNovedades(req.user.sede, { tipo, estado, usuario, busqueda });
+    const novedades = await obtenerNovedades(req.sede, { tipo, estado, usuario, busqueda });
     res.status(200).json(novedades);
   } catch (error) {
     console.error("Error getNovedades:", error.message);
@@ -29,7 +29,7 @@ export const getNovedad = async (req, res) => {
 
 export const createNovedad = async (req, res) => {
   try {
-    const resultado = await crearNovedad(req.body, req.user.id, req.user.sede);
+    const resultado = await crearNovedad(req.body, req.user.id, req.sede);
     res.status(201).json(resultado);
   } catch (error) {
     console.error("Error createNovedad:", error.message);

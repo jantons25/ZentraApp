@@ -10,7 +10,7 @@ import {
 export const registrarEspacio = async (req, res) => {
   try {
     // Si el body no trae sede, se usa la del usuario autenticado
-    const data = { ...req.body, sede: req.body.sede || req.user.sede };
+    const data = { ...req.body, sede: req.body.sede || req.sede };
     const resultado = await createEspacio(data);
     res.status(201).json(resultado);
   } catch (error) {
@@ -22,7 +22,7 @@ export const registrarEspacio = async (req, res) => {
 export const obtenerEspacios = async (req, res) => {
   try {
     const soloActivos = req.query.soloActivos === "true";
-    const espacios = await getEspacios({ soloActivos, sede: req.user.sede });
+    const espacios = await getEspacios({ soloActivos, sede: req.sede });
     res.status(200).json(espacios);
   } catch (error) {
     res.status(500).json({ mensaje: error.message });

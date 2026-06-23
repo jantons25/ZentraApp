@@ -8,28 +8,23 @@ import ReservaIcon from "../assets/reserva.png";
 import "../css/sidebarMenu.css";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { useEffect, useState } from "react";
+import { useSede } from "../context/SedeContext.jsx";
+import { etiquetaDeSede } from "../constants/sedes.js";
+import { useState } from "react";
 import ModalConfirmacion from "./ModalConfirmacion.jsx";
+import SedeSelector from "./SedeSelector.jsx";
 
 function MenuLateral({ user, pagina }) {
   const { logout } = useAuth();
+  const { sedeActiva } = useSede();
   const [mostrarModalLogout, setMostrarModalLogout] = useState(false);
-  const [sede, setSede] = useState("Zentra Hotel");
 
   const handleConfirmLogout = () => {
     logout();
     setMostrarModalLogout(false);
   };
 
-  useEffect(() => {
-    if (user?.sede.includes("Plaza")) {
-      setSede("Zentra Plaza");
-    } else if (user?.sede.includes("Balta")) {
-      setSede("Zentra Balta");
-    } else if (user?.sede.includes("SanJose")) {
-      setSede("Zentra San José");
-    }
-  }, [user?.sede]);
+  const sedeLabel = etiquetaDeSede(sedeActiva) || "Zentra Hotel";
 
   const getItemClass = (nombrePagina) =>
     `sidebar__item ${pagina === nombrePagina ? "sidebar__item--active" : ""}`;
@@ -40,7 +35,7 @@ function MenuLateral({ user, pagina }) {
         <Link to="/" className="sidebar__item">
           <img src={LogoIcon} alt="" className="sidebar__logo" />
           <div className="sidebar__hide">
-            <p className="sidebar__text font-bold">{sede}</p>
+            <p className="sidebar__text font-bold">{sedeLabel}</p>
           </div>
         </Link>
         <Link to="/inventario" className={getItemClass("Inventario")}>
@@ -68,10 +63,7 @@ function MenuLateral({ user, pagina }) {
           </div>
         </Link> */}
         {(user?.role === "admin" || user?.role === "superadmin") && (
-          <Link
-            to="/administracion"
-            className={getItemClass("Administracion")}
-          >
+          <Link to="/administracion" className={getItemClass("Administracion")}>
             <img src={AdminIcon} alt="" className="sidebar__icon" />
             <div className="sidebar__hide">
               <p className="sidebar__text">Adminis.</p>
@@ -89,7 +81,8 @@ function MenuLateral({ user, pagina }) {
             <p className="sidebar__text">Salir</p>
           </div>
         </button>
-        <li className="sidebar__item sidebar__item__user">
+        <SedeSelector />
+        <li className={`sidebar__item ${user?.role === "recepcionista" ? "sidebar__item__user" : ""}`}>
           <div className="sidebar__icon sidebar__icon__user">
             <p>{user?.name?.charAt(0)}</p>
           </div>
